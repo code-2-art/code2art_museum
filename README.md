@@ -1,11 +1,27 @@
+<img width="300"  alt="实验编程LOGO" src="https://github.com/user-attachments/assets/cb81adc7-980d-4dd2-9a36-a58a1a4c0bd5"/>
+
 # code2art museum 实验编程博物馆
 code2art museum 是一个由社群共同建造、永不竣工的在线数字博物馆——它收藏与展示实验编程社群的历史、作品、开源项目与人。
 
 The code2art museum is a community-built, never-ending online digital museum that collects and showcases the history, works, open-source projects, and people of the code2art community.
 
+<br/>
+
+*About 实验编程:*
+
+Website: https://code2art.com/
+
+公众号/wechat: code2art
+
+<img width="100" height="100" alt="公众号" src="https://github.com/user-attachments/assets/5f55ea95-0a36-4978-9b53-764a85c76a81" />
+
+
+
+
+
 ----
 
-# 愿景
+# code2art museum 愿景
 
 实验编程自 2016 年开始，围绕科技、艺术、编程、生成式创作与跨学科实践，逐渐形成了一个先锋社群与知识平台。源自2010年代中国最活跃的交互媒体论坛**HUDOIT** https://hudoit.code2art.com/ 
 
