@@ -7,6 +7,12 @@ The code2art museum is a community-built, never-ending online digital museum tha
 
 <br/>
 
+[code2art museum 愿景](#section1)
+
+[code2art museum 立项书](#section2)
+
+<br/>
+
 *About 实验编程:*
 
 Website: https://code2art.com/
@@ -15,13 +21,13 @@ Website: https://code2art.com/
 
 <img width="100" height="100" alt="公众号" src="https://github.com/user-attachments/assets/5f55ea95-0a36-4978-9b53-764a85c76a81" />
 
-
+<br/>
 
 
 
 ----
 
-# code2art museum 愿景
+# code2art museum 愿景<a id="section1"></a>
 
 实验编程自 2016 年开始，围绕科技、艺术、编程、生成式创作与跨学科实践，逐渐形成了一个先锋社群与知识平台。源自2010年代中国最活跃的交互媒体论坛**HUDOIT** https://hudoit.code2art.com/ 
 
@@ -77,7 +83,7 @@ code2art museum 的答案，不会一次性写完。
 -----
 
 
-# 实验编程博物馆 · code2art museum 立项书
+# 实验编程博物馆 · code2art museum 立项书<a id="section2"></a>
 
 > 一个全程 AI 驱动的开源共建数字博物馆。
 > 我们不只是展示作品，我们把"如何用 AI 协作建造一座博物馆"这件事本身，做成展品。
