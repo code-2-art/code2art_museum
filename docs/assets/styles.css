@@ -188,6 +188,12 @@ h3 {
   background: var(--green);
 }
 
+.button.space-button {
+  border-color: var(--red);
+  color: var(--ink);
+  background: rgba(255, 107, 74, .18);
+}
+
 .hero-visual {
   margin: 0;
   border: 1px solid var(--line);
