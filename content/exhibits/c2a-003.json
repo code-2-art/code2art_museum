@@ -1,0 +1,14 @@
+{
+  "id": "c2a-003",
+  "title": "Prompt 即展品",
+  "type": "prompt",
+  "author": "code2art community",
+  "year": "2026",
+  "tools": ["ChatGPT", "Claude", "Cursor", "Codex"],
+  "description": "Prompt、Skill、工作流和 AI 协作方法也是实验编程时代的重要创作痕迹，可以被收藏、展示、引用和复用。",
+  "process": "先以展品形式记录 Prompt 的使用场景、输入、输出、限制和复用方式，后续扩展为 Prompt / Skill 档案馆。",
+  "media": ["../../VISION.md", "../../CONTRIBUTING.md"],
+  "repo": "https://github.com/code-2-art/code2art_museum/",
+  "contributors": ["code2art community", "avantcontra"],
+  "license": "MIT"
+}

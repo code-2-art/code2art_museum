@@ -1,0 +1,11 @@
+{
+  "id": "profile-archive-curator",
+  "name": "档案整理者",
+  "avatar": "docs/assets/thumb-hudoit.svg",
+  "identity": "策展与资料整理角色",
+  "tools": ["Markdown", "Archive", "Interview", "Metadata"],
+  "representativeWorks": ["历史节点整理", "展品文案", "来源核验", "授权记录"],
+  "relationToCode2Art": "把散落在链接、聊天、硬盘和个人记忆里的社群材料整理为可展示、可引用的公共档案。",
+  "links": ["content/history/", "content/exhibits/"],
+  "status": "role-profile"
+}

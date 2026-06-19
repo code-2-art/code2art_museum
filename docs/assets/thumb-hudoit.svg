@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img" aria-labelledby="title desc">
+  <title id="title">HUDOIT archive thumbnail</title>
+  <desc id="desc">Archive windows and network lines for a community history exhibit.</desc>
+  <rect width="720" height="480" fill="#111318"/>
+  <rect x="68" y="68" width="584" height="344" rx="8" fill="#f2f0e6"/>
+  <rect x="98" y="104" width="260" height="58" rx="4" fill="#0b0c10"/>
+  <rect x="98" y="188" width="164" height="132" rx="4" fill="#d8d2be"/>
+  <rect x="292" y="188" width="262" height="132" rx="4" fill="#0b0c10"/>
+  <path d="M142 356 H580" stroke="#ff6b4a" stroke-width="12"/>
+  <path d="M370 134 L510 230 L414 274 L552 356" fill="none" stroke="#9ce37d" stroke-width="7"/>
+</svg>

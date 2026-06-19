@@ -1,0 +1,14 @@
+{
+  "id": "c2a-005",
+  "title": "TouchDesigner 互动媒体案例入口",
+  "type": "project",
+  "author": "needs-review",
+  "year": "needs-review",
+  "tools": ["TouchDesigner", "Interactive Media", "Projection"],
+  "description": "用于收集实验编程社群中的互动媒体、实时视觉、展览装置和课程案例。",
+  "process": "当前为内容占位入口，需要补充具体项目、视觉材料、技术过程、展示记录和授权信息。",
+  "media": [],
+  "repo": "",
+  "contributors": ["avantcontra"],
+  "license": "needs-review"
+}

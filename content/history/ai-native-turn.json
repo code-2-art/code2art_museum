@@ -1,0 +1,8 @@
+{
+  "id": "ai-native-turn",
+  "year": "needs-review",
+  "title": "AI 原生协作转向",
+  "description": "项目愿景明确把 Prompt Engineering、Context Engineering、Harness Engineering、Loop Engineering 和 Human on the Loop 纳入博物馆建造方式。",
+  "source": "README.md / VISION.md",
+  "status": "needs-review"
+}

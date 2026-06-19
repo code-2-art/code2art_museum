@@ -1,0 +1,14 @@
+{
+  "id": "c2a-001",
+  "title": "HUDOIT 论坛记忆",
+  "type": "history",
+  "author": "code2art community",
+  "year": "2010s",
+  "tools": ["Forum", "Archive", "HTML"],
+  "description": "HUDOIT 是 2010 年代中国活跃的交互媒体论坛之一，也是实验编程社群精神来源之一。这个展品用于收集论坛历史、相关课程、成员记忆和早期作品线索。",
+  "process": "当前版本先建立历史节点与档案入口。后续可补充截图、帖子索引、采访、课程记录和相关开源项目链接。",
+  "media": ["https://hudoit.code2art.com/"],
+  "repo": "",
+  "contributors": ["code2art community", "avantcontra"],
+  "license": "needs-review"
+}
