@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">code2art mark</title>
+  <desc id="desc">A compact code2art museum mark made from a bracket, node, and signal line.</desc>
+  <rect width="96" height="96" rx="8" fill="#f2f0e6"/>
+  <path d="M35 27 20 48l15 21" fill="none" stroke="#0b0c10" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M61 27 76 48 61 69" fill="none" stroke="#0b0c10" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M40 61 56 35" stroke="#ff6b4a" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="48" cy="48" r="8" fill="#9ce37d"/>
+</svg>
