@@ -1,0 +1,14 @@
+{
+  "id": "c2a-002",
+  "title": "code2art museum 建馆宣言",
+  "type": "project",
+  "author": "code2art community",
+  "year": "2026",
+  "tools": ["Markdown", "GitHub", "AI-assisted writing"],
+  "description": "code2art museum 是一座由社群共同建造、永不竣工的在线数字博物馆，收藏实验编程社群的历史、作品、开源项目与人。",
+  "process": "项目先以 README、VISION、贡献协议、展品 schema 和静态 MVP 建立地基，再逐步进入社群共建和自生长阶段。",
+  "media": ["../../README.md", "../../VISION.md"],
+  "repo": "https://github.com/code-2-art/code2art_museum/",
+  "contributors": ["code2art community", "avantcontra"],
+  "license": "MIT"
+}

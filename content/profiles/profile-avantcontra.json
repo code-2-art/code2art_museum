@@ -1,0 +1,11 @@
+{
+  "id": "profile-avantcontra",
+  "name": "avantcontra",
+  "avatar": "docs/assets/code2art-mark.svg",
+  "identity": "首批建馆贡献者",
+  "tools": ["Git", "Markdown", "HTML", "CSS", "AI-assisted coding"],
+  "representativeWorks": ["仓库结构", "核心文档", "静态 MVP", "第一批结构化内容"],
+  "relationToCode2Art": "以仓库提交形式参与 code2art museum 的地基搭建。",
+  "links": ["https://github.com/code-2-art/code2art_museum/"],
+  "status": "from-git-log"
+}

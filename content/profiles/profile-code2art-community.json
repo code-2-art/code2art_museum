@@ -1,0 +1,11 @@
+{
+  "id": "profile-code2art-community",
+  "name": "code2art community",
+  "avatar": "docs/assets/code2art-mark.svg",
+  "identity": "实验编程社群",
+  "tools": ["Creative Coding", "AI", "Open Source", "Education"],
+  "representativeWorks": ["code2art museum", "实验编程内容与社群实践"],
+  "relationToCode2Art": "博物馆的发起语境与主要收藏对象。",
+  "links": ["https://code2art.com/", "https://github.com/code-2-art/code2art_museum/"],
+  "status": "seed"
+}

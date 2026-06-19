@@ -1,0 +1,11 @@
+{
+  "id": "profile-ai-collaborator",
+  "name": "AI 协作者",
+  "avatar": "docs/assets/thumb-ai.svg",
+  "identity": "Human on the Loop 协作角色",
+  "tools": ["ChatGPT", "Claude", "Codex", "Prompt Engineering"],
+  "representativeWorks": ["内容整理", "文档草拟", "代码生成", "结构校验"],
+  "relationToCode2Art": "参与博物馆的生成、整理和迭代，但方向、事实与审美由人类判断。",
+  "links": ["VISION.md"],
+  "status": "role-profile"
+}

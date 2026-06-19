@@ -1,0 +1,14 @@
+{
+  "id": "c2a-004",
+  "title": "p5.js 生成式草图种子展品",
+  "type": "artwork",
+  "author": "needs-review",
+  "year": "needs-review",
+  "tools": ["p5.js", "JavaScript", "Generative Art"],
+  "description": "面向教学和创作入门的生成式视觉案例入口，用于承接实验编程社群中的 p5.js 作品。",
+  "process": "当前为种子展品，需要补充真实作品、作者授权、代码链接、截图和创作说明。",
+  "media": ["docs/assets/thumb-p5.svg"],
+  "repo": "",
+  "contributors": ["avantcontra"],
+  "license": "needs-review"
+}

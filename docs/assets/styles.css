@@ -263,6 +263,32 @@ h3 {
   list-style: none;
 }
 
+.timeline-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.timeline-list li {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.timeline-list span {
+  color: var(--gold);
+  font-weight: 780;
+}
+
+.timeline-list strong {
+  overflow-wrap: anywhere;
+}
+
 .compact-list li {
   padding: 12px 14px;
   border-left: 3px solid var(--green);
@@ -429,7 +455,8 @@ h3 {
   }
 
   .compact-list,
-  .meta-grid {
+  .meta-grid,
+  .timeline-list li {
     grid-template-columns: 1fr;
   }
 }
