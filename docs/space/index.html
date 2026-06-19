@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>3D 漫游展馆 | code2art museum</title>
+    <meta name="description" content="code2art museum 的开放世界式 3D 漫游展馆。">
+    <link rel="icon" href="../assets/code2art-mark.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../assets/space.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../vendor/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body class="space-page">
+    <main class="space-shell" aria-label="code2art museum 3D 漫游展馆">
+      <div id="space-stage" class="space-stage" aria-hidden="true"></div>
+
+      <header class="space-hud space-topbar">
+        <a class="space-brand" href="../index.html">
+          <img src="../assets/code2art-mark.svg" alt="code2art museum mark">
+          <span>code2art museum / 3D</span>
+        </a>
+        <nav class="space-nav" aria-label="3D museum navigation">
+          <a href="../index.html">首页</a>
+          <a href="../exhibits/index.html">展品</a>
+          <a href="../exhibits/c2a-001/index.html">详情</a>
+          <a href="../profiles/index.html">成员</a>
+          <a href="../contributors/index.html">贡献者</a>
+        </nav>
+      </header>
+
+      <section class="space-hud space-panel" aria-labelledby="space-title">
+        <p class="space-kicker">Open World Layer</p>
+        <h1 id="space-title">3D 漫游式展馆</h1>
+        <p>同一套博物馆结构，换成可漫游的深空展馆：走到任一展区前，按 Enter 或点击按钮进入对应页面。</p>
+        <div class="space-actions">
+          <button id="enter-roam" type="button">开始漫游</button>
+          <a id="active-link" href="../exhibits/index.html">进入当前展区</a>
+        </div>
+      </section>
+
+      <aside class="space-hud space-guide" aria-label="Controls">
+        <p>WASD / 方向键移动</p>
+        <p>拖拽或鼠标控制视角</p>
+        <p>Enter 打开最近展区</p>
+      </aside>
+
+      <div class="space-reticle" aria-hidden="true"></div>
+
+      <div class="space-mobile-controls" aria-label="Mobile movement controls">
+        <button data-move="forward" type="button">↑</button>
+        <div>
+          <button data-move="left" type="button">←</button>
+          <button data-move="back" type="button">↓</button>
+          <button data-move="right" type="button">→</button>
+        </div>
+      </div>
+
+      <noscript>
+        <p class="space-noscript">3D 展馆需要启用 JavaScript。你仍可访问普通版展馆。</p>
+      </noscript>
+    </main>
+    <script type="module" src="../assets/space.js"></script>
+  </body>
+</html>
