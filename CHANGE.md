@@ -2,6 +2,20 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-20 - Homepage Build Progress Timeline
+
+### Added
+
+- Added a homepage section named `博物馆建设进程`.
+- Presented the current museum build status as a vertical timeline.
+- Summarized the current published MVP, website navigation, core modules, 3D roaming museum, and next improvement phase from this `CHANGE.md` record.
+- Added a homepage link to the full GitHub-rendered `CHANGE.md`.
+
+### Website Surface
+
+- Affected page: `docs/index.html`.
+- Affected styles: `docs/assets/styles.css`.
+
 ## 2026-06-20 - Published MVP with 3D Museum
 
 ### Version Scope
