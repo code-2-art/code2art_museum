@@ -1,0 +1,124 @@
+---
+import AgentGuide from "@/components/AgentGuide.astro";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { archiveEntrances, buildProgress, exhibits, historyNodes, researchDirections } from "@/data/museum";
+
+const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const href = (path: string) => `${base}${path.replace(/^\//, "")}`;
+const currentExhibitions = exhibits.slice(0, 3);
+const visibleHistory = historyNodes.slice(-3).reverse();
+---
+
+<SiteLayout
+  title="code2art museum | 实验编程社区的在线数字博物馆"
+  description="code2art museum 是实验编程社区的在线数字博物馆、档案馆与研究平台，以 Museum Agent 作为导览入口。"
+>
+  <main>
+    <section class="hero-shell">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Online digital museum / Archive / Research</p>
+          <h1>code2art museum</h1>
+          <p class="hero-subtitle">实验编程社区的在线数字博物馆</p>
+          <p class="hero-lead">
+            收藏作品、项目、Prompt、Skill、成员、历史与 AI 协作过程。每位访问者都可以从自己的问题出发，让博物馆生成一条私人导览路线。
+          </p>
+        </div>
+        <AgentGuide />
+      </div>
+      <div class="preview-rail" aria-label="Homepage section preview">
+        <a href={href("/exhibitions/")}>
+          <span>当前展览</span>
+          <strong>最小可见博物馆</strong>
+        </a>
+        <a href={href("/archive/")}>
+          <span>档案入口</span>
+          <strong>作品 / 项目 / Prompt / Skill</strong>
+        </a>
+        <a href={href("/progress/")}>
+          <span>建设进程</span>
+          <strong>CHANGE.md → Astro index design</strong>
+        </a>
+      </div>
+    </section>
+
+    <section class="content-band" id="exhibitions" aria-labelledby="exhibitions-title">
+      <div class="section-title">
+        <p class="eyebrow">Current exhibition</p>
+        <h2 id="exhibitions-title">当前展览</h2>
+      </div>
+      <div class="index-list">
+        {currentExhibitions.map((exhibit) => (
+          <article class="index-row" id={exhibit.id}>
+            <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
+            <h3>{exhibit.title}</h3>
+            <p>{exhibit.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="content-band two-column" id="archive" aria-labelledby="archive-title">
+      <div class="section-title sticky-title">
+        <p class="eyebrow">Archive entrances</p>
+        <h2 id="archive-title">档案入口</h2>
+        <p>档案不只按条目排列，也按作品、项目、方法、人物与历史之间的关系被导览。</p>
+      </div>
+      <div class="archive-grid">
+        {archiveEntrances.map((item) => (
+          <article class="archive-entry">
+            <span>{item.meta}</span>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="content-band research-band" id="research" aria-labelledby="research-title">
+      <div class="section-title">
+        <p class="eyebrow">Research directions</p>
+        <h2 id="research-title">研究方向</h2>
+      </div>
+      <ul class="research-list">
+        {researchDirections.map((direction) => <li>{direction}</li>)}
+      </ul>
+    </section>
+
+    <section class="content-band two-column" id="progress" aria-labelledby="progress-title">
+      <div class="section-title sticky-title">
+        <p class="eyebrow">CHANGE.md</p>
+        <h2 id="progress-title">建设进程</h2>
+        <p>公开记录网站每次增量版本，让博物馆本身也成为可被收藏的过程。</p>
+      </div>
+      <ol class="progress-list">
+        {buildProgress.map((item) => (
+          <li>
+            <span>{item.id}</span>
+            <div>
+              <p>{item.label}</p>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="content-band two-column" aria-labelledby="history-title">
+      <div class="section-title sticky-title">
+        <p class="eyebrow">Chronicle</p>
+        <h2 id="history-title">历史节点</h2>
+      </div>
+      <div class="index-list compact">
+        {visibleHistory.map((node) => (
+          <article class="index-row">
+            <p class="row-meta">{node.year} / {node.status}</p>
+            <h3>{node.title}</h3>
+            <p>{node.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+</SiteLayout>

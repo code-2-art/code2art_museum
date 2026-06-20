@@ -1,0 +1,25 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { exhibits } from "@/data/museum";
+---
+
+<SiteLayout title="展览 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Exhibitions</p>
+        <h1>展览</h1>
+      </div>
+      <p>当前展览以“最小可见博物馆”为起点，把历史、项目、作品和 AI 协作过程放在同一条导览路线里。</p>
+    </section>
+    <section class="index-list">
+      {exhibits.map((exhibit) => (
+        <article class="index-row">
+          <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
+          <h3>{exhibit.title}</h3>
+          <p>{exhibit.description}</p>
+        </article>
+      ))}
+    </section>
+  </main>
+</SiteLayout>

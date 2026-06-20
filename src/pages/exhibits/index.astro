@@ -1,0 +1,25 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { exhibits } from "@/data/museum";
+---
+
+<SiteLayout title="展品 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Legacy exhibits route</p>
+        <h1>展品</h1>
+      </div>
+      <p>这里保留旧版展品入口，同时内容结构逐步迁移到展览与档案系统。</p>
+    </section>
+    <section class="index-list">
+      {exhibits.map((exhibit) => (
+        <article class="index-row">
+          <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
+          <h3>{exhibit.title}</h3>
+          <p>{exhibit.description}</p>
+        </article>
+      ))}
+    </section>
+  </main>
+</SiteLayout>

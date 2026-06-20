@@ -1,0 +1,28 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { buildProgress } from "@/data/museum";
+---
+
+<SiteLayout title="建设进程 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Progress</p>
+        <h1>建设进程</h1>
+      </div>
+      <p>版本记录来自 CHANGE.md。这里把建馆过程作为公共档案的一部分展示。</p>
+    </section>
+    <ol class="progress-list">
+      {buildProgress.map((item) => (
+        <li>
+          <span>{item.id}</span>
+          <div>
+            <p>{item.label}</p>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </main>
+</SiteLayout>

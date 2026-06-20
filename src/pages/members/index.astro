@@ -1,0 +1,26 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { profiles } from "@/data/museum";
+---
+
+<SiteLayout title="成员 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Members</p>
+        <h1>成员</h1>
+      </div>
+      <p>成员 Profile 记录身份、工具栈、代表工作和与 code2art museum 的关系。</p>
+    </section>
+    <section class="simple-list" id="members">
+      {profiles.map((profile) => (
+        <article class="simple-card">
+          <p class="row-meta">{profile.status}</p>
+          <h2>{profile.name}</h2>
+          <p>{profile.identity}</p>
+          <p>{profile.relationToCode2Art}</p>
+        </article>
+      ))}
+    </section>
+  </main>
+</SiteLayout>

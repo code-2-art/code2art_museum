@@ -1,0 +1,29 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const contributors = [
+  ["code2art community", "博物馆共同建设者与未来贡献者集合。"],
+  ["avantcontra", "首批建馆贡献者，参与仓库结构、核心文档和静态 MVP。"],
+  ["AI 协作者", "参与内容整理、代码生成和结构校验，最终方向由人类判断。"]
+];
+---
+
+<SiteLayout title="贡献者 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Contributors</p>
+        <h1>贡献者</h1>
+      </div>
+      <p>贡献者墙记录建馆过程中的代码、内容、设计、测试、策展与 AI 协作角色。</p>
+    </section>
+    <section class="simple-list">
+      {contributors.map(([name, description]) => (
+        <article class="simple-card">
+          <h2>{name}</h2>
+          <p>{description}</p>
+        </article>
+      ))}
+    </section>
+  </main>
+</SiteLayout>

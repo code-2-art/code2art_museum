@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480" role="img" aria-labelledby="title desc">
+  <title id="title">AI prompt lab thumbnail</title>
+  <desc id="desc">Prompt fragments arranged as an archive artifact.</desc>
+  <rect width="720" height="480" fill="#0b0c10"/>
+  <rect x="74" y="74" width="572" height="332" rx="8" fill="#151922" stroke="#f2f0e6" stroke-width="3"/>
+  <path d="M116 144 H430 M116 200 H594 M116 256 H510 M116 312 H362" stroke="#9ce37d" stroke-width="14"/>
+  <path d="M470 144 H584 M534 256 H596 M392 312 H590" stroke="#ff6b4a" stroke-width="14"/>
+  <circle cx="560" cy="94" r="28" fill="#e7c15f"/>
+  <text x="116" y="366" fill="#f2f0e6" font-family="Arial, sans-serif" font-size="32" font-weight="700">prompt as exhibit</text>
+</svg>

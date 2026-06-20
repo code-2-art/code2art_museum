@@ -1,0 +1,19 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { researchDirections } from "@/data/museum";
+---
+
+<SiteLayout title="研究 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Research</p>
+        <h1>研究</h1>
+      </div>
+      <p>研究方向用于连接创作实践、技术方法、社区档案和 AI 原生协作，把博物馆建设过程也纳入研究对象。</p>
+    </section>
+    <ul class="research-list simple-list">
+      {researchDirections.map((direction) => <li class="simple-card">{direction}</li>)}
+    </ul>
+  </main>
+</SiteLayout>

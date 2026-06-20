@@ -1,0 +1,62 @@
+---
+import { agentQuestions, exhibits, historyNodes, profiles } from "@/data/museum";
+import RouteEvidence from "./RouteEvidence.astro";
+
+const featuredExhibits = exhibits.slice(0, 2);
+const featuredProfile = profiles.find((profile) => profile.id === "profile-avantcontra") ?? profiles[0];
+const recentHistory = historyNodes.at(-1);
+---
+
+<section class="agent-desk" aria-labelledby="agent-title">
+  <div class="agent-main">
+    <p class="eyebrow">Museum Agent</p>
+    <h2 id="agent-title">问博物馆 Agent</h2>
+    <label class="agent-input" for="museum-agent-input">
+      <span>Ask</span>
+      <input
+        id="museum-agent-input"
+        type="text"
+        value="给我一条适合新手的参观路线"
+        aria-label="问博物馆 Agent"
+      />
+      <button type="button" aria-label="提交问题">↗</button>
+    </label>
+    <div class="question-chips" aria-label="Suggested routes">
+      {agentQuestions.map((question) => <button type="button">{question}</button>)}
+    </div>
+    <div class="agent-answer">
+      <p class="answer-label">Guide route</p>
+      <p>
+        先从建馆宣言理解这座博物馆的目标，再进入 HUDOIT 论坛记忆，看实验编程的历史来源，最后浏览 AI 协作者与
+        Prompt / Skill 线索，形成一条从历史到方法的入门路线。
+      </p>
+    </div>
+  </div>
+
+  <aside class="agent-evidence" aria-label="Agent recommendation evidence">
+    <RouteEvidence />
+    <div class="evidence-list">
+      {featuredExhibits.map((exhibit) => (
+        <a class="catalog-strip" href={`#${exhibit.id}`}>
+          <span>{exhibit.id.toUpperCase()}</span>
+          <strong>{exhibit.title}</strong>
+          <em>{exhibit.type}</em>
+        </a>
+      ))}
+      {featuredProfile && (
+        <a class="catalog-strip" href="#members">
+          <span>PERSON</span>
+          <strong>{featuredProfile.name}</strong>
+          <em>{featuredProfile.identity}</em>
+        </a>
+      )}
+      {recentHistory && (
+        <a class="catalog-strip" href="#progress">
+          <span>HISTORY</span>
+          <strong>{recentHistory.title}</strong>
+          <em>{recentHistory.year}</em>
+        </a>
+      )}
+    </div>
+  </aside>
+</section>

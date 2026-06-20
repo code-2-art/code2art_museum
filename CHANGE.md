@@ -2,6 +2,31 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-20 - Astro Homepage Index Design
+
+### Added
+
+- Added an Astro + TypeScript + Tailwind 4 site source under `src/`.
+- Added a new homepage design centered on `Museum Agent` as the primary archive guide entry.
+- Added a light international archive visual direction with paper-white background, strong typography, restrained accent colors, and catalog-style content rows.
+- Added an Agent evidence / route map that explains relationships between works, projects, people, prompts, skills, and history without treating the graph as decoration.
+- Added planned navigation pages for `展览`, `档案`, `研究`, `成员`, `建设进程`, and `参与`.
+- Preserved legacy compatibility routes for `展品`, `成员 Profile`, `贡献者`, and the first exhibit detail.
+
+### Website Surface
+
+- New source: `src/pages/index.astro`, `src/components/AgentGuide.astro`, `src/components/RouteEvidence.astro`, `src/styles/global.css`.
+- Build output: `docs/`.
+- Static 3D museum assets remain available under `docs/space/`, `docs/assets/`, and `docs/vendor/`.
+
+### Technical Notes
+
+- Main framework: Astro 5.
+- Type system: TypeScript.
+- Styling: Tailwind 4 through `@tailwindcss/vite`.
+- GitHub Pages base path: `/code2art_museum`.
+- Local build requires Node `>=22.12.0`.
+
 ## 2026-06-20 - Homepage Build Progress Timeline
 
 ### Added

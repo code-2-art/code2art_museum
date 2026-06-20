@@ -46,6 +46,26 @@ code2art museum 现在处于 **地基与最小可见博物馆** 阶段。当前�
 - 准备第一批展品、成员 Profile、历史节点和贡献者墙。
 - 让贡献者能通过代码、设计、作品资料、Prompt、Skill、文案和测试反馈进入项目。
 
+## 本地开发
+
+当前网站源码使用 Astro + TypeScript + Tailwind 4，静态构建结果输出到 `docs/`，用于 GitHub Pages 发布。
+
+要求：
+
+- Node.js `>=22.12.0`
+- npm `>=9.6.5`
+
+常用命令：
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+```
+
+如果网络访问 npm registry 不稳定，可以在本地设置代理后再安装依赖。
+
 ## 如何参与
 
 你可以通过 Pull Request、Issue 或社群讨论参与。每一种贡献都可以成为博物馆的一部分：

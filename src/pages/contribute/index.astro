@@ -1,0 +1,30 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+
+const paths = [
+  ["提交作品", "补充作品、项目、Prompt、Skill、课程或历史节点。"],
+  ["补充历史", "为 HUDOIT、code2art 和实验编程社群补充事实、链接、截图和上下文。"],
+  ["完善 Profile", "让成员身份、工具栈、代表作品和贡献方式可以被引用。"],
+  ["参与建设", "贡献代码、测试、设计、策展判断和文档整理。"]
+];
+---
+
+<SiteLayout title="参与 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Contribute</p>
+        <h1>参与</h1>
+      </div>
+      <p>参与入口会逐步与 Museum Agent 连接，让访问者按自己的能力和兴趣获得合适的贡献路线。</p>
+    </section>
+    <section class="simple-list">
+      {paths.map(([title, description]) => (
+        <article class="simple-card">
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </article>
+      ))}
+    </section>
+  </main>
+</SiteLayout>

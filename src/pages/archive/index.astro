@@ -1,0 +1,40 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { archiveEntrances, exhibits, historyNodes } from "@/data/museum";
+---
+
+<SiteLayout title="档案 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Archive</p>
+        <h1>档案</h1>
+      </div>
+      <p>档案入口将作品、项目、Prompt / Skill、人物和历史节点组织成可被 Museum Agent 解释的知识空间。</p>
+    </section>
+    <section class="archive-grid">
+      {archiveEntrances.map((item) => (
+        <article class="archive-entry">
+          <span>{item.meta}</span>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </article>
+      ))}
+    </section>
+    <section class="content-band">
+      <div class="section-title">
+        <p class="eyebrow">Seed records</p>
+        <h2>首批记录</h2>
+      </div>
+      <div class="index-list compact">
+        {[...exhibits.slice(0, 3), ...historyNodes.slice(-2)].map((item) => (
+          <article class="index-row">
+            <p class="row-meta">{"type" in item ? item.type : item.status}</p>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+</SiteLayout>
