@@ -2,6 +2,17 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - Site Plan Added to Repository
+
+### Added
+
+- Added `SITE_PLAN.md` at the repository root as the active website plan for information architecture, Museum Agent direction, visual principles, page model, content model, and phased implementation.
+- Clarified that `ROADMAP.md` remains the compact public phase roadmap, while `SITE_PLAN.md` carries the detailed site design and product planning context.
+
+### Process Notes
+
+- Keep recording every meaningful project increment in this `CHANGE.md` file so the museum build process remains part of the public archive.
+
 ## 2026-06-20 - Astro Homepage Index Design
 
 ### Added

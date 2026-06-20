@@ -2,6 +2,8 @@
 
 code2art museum 会小步发布、持续生长。当前路线图只保留三个阶段，避免过度设计。
 
+详细网站信息架构、页面规划、Museum Agent 体验与视觉方向见 [`SITE_PLAN.md`](SITE_PLAN.md)。每次重要增量继续记录在 [`CHANGE.md`](CHANGE.md)。
+
 ## Phase 1：最小可见博物馆
 
 - 首页
