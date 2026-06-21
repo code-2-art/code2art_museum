@@ -2,6 +2,12 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - 3D Museum Version Menu
+
+### Added
+
+- Added a `3D 展馆` dropdown in the shared top navigation with `版本 1` pointing to the current `feature/3d` AI-native three-hall museum implementation.
+
 ## 2026-06-21 - High-Fidelity Procedural 3D Museum Pass
 
 ### Changed
