@@ -2,6 +2,13 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - 3D Museum Menu Hover Behavior
+
+### Changed
+
+- Changed the `3D 展馆` navigation menu to open on hover/focus instead of requiring a click.
+- Renamed the dropdown subtitles to `版本 1 / 漫游` and `版本 2 / 效果图视差`.
+
 ## 2026-06-21 - 3D Museum Version 2 Added
 
 ### Added

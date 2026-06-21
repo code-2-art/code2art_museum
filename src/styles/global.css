@@ -120,7 +120,7 @@ input:focus-visible {
 }
 
 .primary-nav a::after,
-.nav-dropdown summary::after {
+.nav-dropdown-trigger::after {
   position: absolute;
   right: 0;
   bottom: -4px;
@@ -137,17 +137,15 @@ input:focus-visible {
 
 .primary-nav a:hover,
 .primary-nav a:focus-visible,
-.nav-dropdown summary:hover,
-.nav-dropdown summary:focus-visible,
-.nav-dropdown[open] summary {
+.nav-dropdown:hover .nav-dropdown-trigger,
+.nav-dropdown:focus-within .nav-dropdown-trigger {
   color: var(--color-ink);
 }
 
 .primary-nav a:hover::after,
 .primary-nav a:focus-visible::after,
-.nav-dropdown summary:hover::after,
-.nav-dropdown summary:focus-visible::after,
-.nav-dropdown[open] summary::after {
+.nav-dropdown:hover .nav-dropdown-trigger::after,
+.nav-dropdown:focus-within .nav-dropdown-trigger::after {
   opacity: 0.55;
   transform: scaleX(1);
 }
@@ -156,22 +154,26 @@ input:focus-visible {
   position: relative;
 }
 
-.nav-dropdown summary {
+.nav-dropdown::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: 100%;
+  height: 16px;
+  content: "";
+}
+
+.nav-dropdown-trigger {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding-block: 4px;
-  cursor: pointer;
-  list-style: none;
+  color: var(--color-muted);
   transition: color 160ms ease;
 }
 
-.nav-dropdown summary::-webkit-details-marker {
-  display: none;
-}
-
-.nav-dropdown summary svg {
+.nav-dropdown-trigger svg {
   width: 12px;
   height: 12px;
   fill: none;
@@ -182,7 +184,8 @@ input:focus-visible {
   transition: transform 160ms ease;
 }
 
-.nav-dropdown[open] summary svg {
+.nav-dropdown:hover .nav-dropdown-trigger svg,
+.nav-dropdown:focus-within .nav-dropdown-trigger svg {
   transform: rotate(180deg);
 }
 
@@ -191,12 +194,26 @@ input:focus-visible {
   top: calc(100% + 14px);
   right: 0;
   z-index: 20;
+  display: grid;
   min-width: 220px;
   padding: 10px;
   border: 1px solid rgba(22, 21, 19, 0.18);
   background: rgba(255, 250, 242, 0.96);
   box-shadow: var(--shadow-crisp);
   backdrop-filter: blur(16px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .nav-dropdown-menu a {
@@ -892,9 +909,15 @@ h1 {
   }
 
   .nav-dropdown-menu {
+    position: static;
     right: auto;
     left: 0;
+    display: grid;
     min-width: min(78vw, 240px);
+    margin-top: 8px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
   }
 
   .hero-shell {

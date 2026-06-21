@@ -30,12 +30,12 @@ const nav = [
     items: [
       {
         label: "版本 1",
-        title: "AI 原生三展厅",
+        title: "漫游",
         href: href("/space/")
       },
       {
         label: "版本 2",
-        title: "离线 3D 场景",
+        title: "效果图视差",
         href: href("/space/v2/")
       }
     ]
@@ -62,13 +62,13 @@ const nav = [
       <nav class="primary-nav" aria-label="Primary navigation">
         {nav.map((item) => (
           "items" in item ? (
-            <details class="nav-dropdown">
-              <summary>
+            <div class="nav-dropdown">
+              <a class="nav-dropdown-trigger" href={item.items[0].href} aria-haspopup="true">
                 <span>{item.label}</span>
                 <svg viewBox="0 0 12 12" aria-hidden="true">
                   <path d="M3 4.5 6 7.5 9 4.5" />
                 </svg>
-              </summary>
+              </a>
               <div class="nav-dropdown-menu">
                 {item.items.map((child) => (
                   <a href={child.href}>
@@ -77,7 +77,7 @@ const nav = [
                   </a>
                 ))}
               </div>
-            </details>
+            </div>
           ) : (
             <a href={item.href}>{item.label}</a>
           )
