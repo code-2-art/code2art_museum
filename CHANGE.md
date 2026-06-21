@@ -2,6 +2,13 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - 3D Museum Version 1 Walkable Scene
+
+### Changed
+
+- Replaced `3D 展馆` version 1 at `space/index.html` with the offline `code2art Museum Walkable` scene.
+- Updated the `3D 展馆` dropdown version links to open in a new browser window or tab.
+
 ## 2026-06-21 - 3D Museum Menu Hover Behavior
 
 ### Changed
