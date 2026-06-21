@@ -2,6 +2,83 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - 3D Museum Version 1 Walkable Scene
+
+### Changed
+
+- Replaced `3D 展馆` version 1 at `space/index.html` with the offline `code2art Museum Walkable` scene.
+- Updated the `3D 展馆` dropdown version links to open in a new browser window or tab.
+
+## 2026-06-21 - 3D Museum Menu Hover Behavior
+
+### Changed
+
+- Changed the `3D 展馆` navigation menu to open on hover/focus instead of requiring a click.
+- Renamed the dropdown subtitles to `版本 1 / 漫游` and `版本 2 / 效果图视差`.
+
+## 2026-06-21 - 3D Museum Version 2 Added
+
+### Added
+
+- Added the offline `code2art Museum 3D` scene as 3D museum `版本 2` at `space/v2/index.html`.
+- Added `版本 2 / 离线 3D 场景` to the shared `3D 展馆` navigation dropdown.
+
+## 2026-06-21 - 3D Museum Version Menu
+
+### Added
+
+- Added a `3D 展馆` dropdown in the shared top navigation with `版本 1` pointing to the current `feature/3d` AI-native three-hall museum implementation.
+
+## 2026-06-21 - High-Fidelity Procedural 3D Museum Pass
+
+### Changed
+
+- Reworked the 3D museum from rough placeholder room geometry into a higher-fidelity procedural Three.js scene that follows the three concept images more closely.
+- Added reusable 3D asset modules for atrium shells, archive stacks, process tables, construction scaffolds, robot arms, member walls, portal doors, glass rails, star-map floors, stairs, illuminated signage, and concept-image projections.
+- Expanded the three rooms into distinct spatial experiences: a Museum Agent archive atrium, a Human-on-the-Loop construction-site gallery, and a community relationship star-map hall.
+
+### Technical Notes
+
+- New shared asset module: `public/assets/space-assets.js`, mirrored by the static build to `docs/assets/space-assets.js`.
+- The runtime exposes `window.__spaceMuseumDebug` for quick browser verification of loaded rooms, scene object counts, active room, and animation frame progress.
+
+## 2026-06-21 - Local Static Preview CSS Path Fix
+
+### Fixed
+
+- Fixed Astro-generated pages such as `docs/archive/index.html` loading without CSS when previewed from the `docs/` root at `http://127.0.0.1:4173/`.
+- Switched the Astro build to relative base output and added `scripts/normalize-docs-links.mjs` so generated HTML links to `_astro` assets, favicon assets, and internal pages work from both local static preview paths and GitHub Pages-style subpaths.
+- Updated shared layout link helpers so navigation and assets use relative `index.html` paths instead of hard-coded `/code2art_museum/` URLs.
+
+## 2026-06-21 - AI-Native Three-Hall 3D Museum
+
+### Added
+
+- Created the `feature/3d` branch for the 3D museum implementation.
+- Rebuilt the static Three.js museum layer around three AI-native halls: `导览大厅`, `建设现场展厅`, and `社群星图展厅`.
+- Added runtime copies of the three concept images under `public/assets/space-concepts/` so each hall can use its concept board as a texture-backed visual target.
+- Added a Museum Agent HUD itinerary with direct room focus buttons, active-room descriptions, and links back into the archive, progress, and members sections.
+
+### Technical Notes
+
+- The first version uses procedural Three.js geometry plus texture-backed concept boards rather than GLB/glTF assets.
+- This keeps GitHub Pages deployment simple while preserving a clear upgrade path to optimized GLB architecture and collision/pathfinding later.
+
+## 2026-06-21 - AI-Native 3D Concept Images Added
+
+### Added
+
+- Added three AI-native 3D museum concept images under `design/visual-system/`: `AI-Native Archive Atrium.jpg`, `AI Construction Site Museum.jpg`, and `Community Star-Map Museum.jpg`.
+- Inserted the three concept images into `design/visual-system/web-3d-solution-notes.md` as visual targets for the future 3D museum layer.
+- Defined the three concepts as connected exhibition spaces: the Museum Agent atrium, the Human on the Loop construction hall, and the community star-map navigation hall.
+
+## 2026-06-21 - 3D Reference Cases Added
+
+### Added
+
+- Added 3D / immersive / metaverse reference cases to `SITE_PLAN.md`: New Art City, VOMA coverage on WIRED, KUNSTMATRIX Artspaces - Naturally Kladow, and Metasteps.
+- Clarified how each reference should inform the future 3D museum layer, including virtual exhibition networks, online-native museum architecture, browser-based white-cube galleries, and metaverse-style spatial publishing.
+
 ## 2026-06-21 - Site Plan Added to Repository
 
 ### Added
