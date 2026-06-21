@@ -35,6 +35,13 @@ tags: [site-plan, information-architecture, references]
 
 - CreativeApplications.Net：创意技术项目报道、案例策展、作品技术语境与创作者信息组织方式。它不作为整体网站架构主参考，但适合启发 `当前项目`、`案例研究`、`技术观察`、`精选作品报道` 等栏目。
 
+（旧世代）3D / 沉浸式 / 元宇宙参考：
+
+- New Art City：https://newart.city/ 。虚拟 gallery 与 digital art exhibition toolkit，适合参考线上展览如何以网页、3D 空间、作品陈述、标签和策展项目形成可持续发布的展览网络。
+- VOMA / Virtual Online Museum of Art：https://www.wired.com/story/pandemic-changes-art-experience/ 。适合参考“线上原生博物馆建筑”的空间尺度、展厅组织、庭院 / 表演空间 / 无限扩展建筑等方向，而不是把 3D 仅做成作品卡片的容器。
+- KUNSTMATRIX Artspaces - Naturally Kladow：https://artspaces.kunstmatrix.com/en/exhibition/15683637/naturlich-kladow 。适合参考成熟 3D 线上展厅中的白盒子展陈、作品墙、导览动线和浏览器可访问体验。
+- Metasteps：https://metasteps.com/?utm_source=artsteps&utm_medium=referral&utm_campaign=introducing-metasteps 。适合参考从 Artsteps 式 3D 展览编辑器向更完整元宇宙 / 空间发布平台演化的产品方向。
+
 ## 建议导航
 
 近期主导航：
