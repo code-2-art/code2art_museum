@@ -2,6 +2,13 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - 3D Museum Version 2 Added
+
+### Added
+
+- Added the offline `code2art Museum 3D` scene as 3D museum `版本 2` at `space/v2/index.html`.
+- Added `版本 2 / 离线 3D 场景` to the shared `3D 展馆` navigation dropdown.
+
 ## 2026-06-21 - 3D Museum Version Menu
 
 ### Added
