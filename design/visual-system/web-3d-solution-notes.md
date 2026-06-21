@@ -15,11 +15,13 @@ Use a lightweight Three.js/WebGL scene for the first 3D museum layer.
 
 - Route: `docs/space/index.html`
 - Scene logic: `docs/assets/space.js`
+- Procedural asset modules: `docs/assets/space-assets.js`
 - Style: `docs/assets/space.css`
 - Local Three.js vendor files: `docs/vendor/three.module.js` and `docs/vendor/three.core.js`
 - Structure now follows the three AI-native concept halls: Museum Agent atrium, Human on the Loop construction hall, and community star-map hall.
-- The implementation remains static-site friendly: concept images are copied to `public/assets/space-concepts/`, loaded as browser textures, and surrounded by procedural Three.js architecture, route nodes, floor paths, and HUD controls.
-- No GLB/glTF assets are shipped yet. The current asset pipeline uses optimized JPG concept boards as replaceable wall textures while leaving room for later GLB architecture.
+- The implementation remains static-site friendly: concept images are copied to `public/assets/space-concepts/`, loaded as browser textures, and surrounded by procedural Three.js architecture, route nodes, floor paths, HUD controls, and reusable asset prefabs.
+- The latest visual pass moves beyond rough placeholder geometry. `space-assets.js` now provides replaceable 3D asset modules for atrium shells, illuminated portal doors, archive stacks, process tables, scaffolds, robot arms, glass rails, member walls, star-map floors, stairs, image planes, and text signage.
+- No GLB/glTF assets are shipped yet. The current asset pipeline uses procedural assets plus optimized JPG concept boards as the in-browser target; later GLB architecture can replace individual prefab functions without changing the page route.
 
 ## AI-Native 3D Museum Concepts
 
@@ -58,7 +60,7 @@ Role: community relationship map and long-term spatial navigation model.
 ## Later Upgrade Path
 
 - Review and pin the exact Three.js release before production hardening; the current vendor files were copied from the jsDelivr `three` package endpoint during MVP implementation.
-- Replace procedural room shells with GLB/glTF architecture derived from the three concept halls.
+- Replace selected procedural prefabs with GLB/glTF architecture derived from the three concept halls, starting with the atrium shell, construction scaffolding, robot arms, and star-map portals.
 - Use glTF Transform before shipping larger model assets; keep pivots, scale, material reuse, texture budgets, and collision proxies explicit.
 - Add collision and pathfinding if the space grows beyond the current hub.
 - Evaluate PlayCanvas or Babylon.js if the project needs authoring tools, multiplayer, physics, or Gaussian splat scenes.

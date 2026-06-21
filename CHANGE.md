@@ -2,6 +2,19 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-06-21 - High-Fidelity Procedural 3D Museum Pass
+
+### Changed
+
+- Reworked the 3D museum from rough placeholder room geometry into a higher-fidelity procedural Three.js scene that follows the three concept images more closely.
+- Added reusable 3D asset modules for atrium shells, archive stacks, process tables, construction scaffolds, robot arms, member walls, portal doors, glass rails, star-map floors, stairs, illuminated signage, and concept-image projections.
+- Expanded the three rooms into distinct spatial experiences: a Museum Agent archive atrium, a Human-on-the-Loop construction-site gallery, and a community relationship star-map hall.
+
+### Technical Notes
+
+- New shared asset module: `public/assets/space-assets.js`, mirrored by the static build to `docs/assets/space-assets.js`.
+- The runtime exposes `window.__spaceMuseumDebug` for quick browser verification of loaded rooms, scene object counts, active room, and animation frame progress.
+
 ## 2026-06-21 - Local Static Preview CSS Path Fix
 
 ### Fixed

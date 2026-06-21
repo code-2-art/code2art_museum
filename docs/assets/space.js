@@ -1,4 +1,23 @@
 import * as THREE from 'three';
+import {
+  box,
+  createArchiveStack,
+  createAtriumShell,
+  createFloorStarMap,
+  createGlassRail,
+  createImagePlane,
+  createLabelTexture,
+  createLightStrip,
+  createMaterialLibrary,
+  createMemberWall,
+  createPortalDoor,
+  createProcessTable,
+  createRobotArm,
+  createScaffold,
+  createStepStairs,
+  lineBetween,
+  plane
+} from './space-assets.js';
 
 const stage = document.querySelector('#space-stage');
 const panelKicker = document.querySelector('#space-kicker');
@@ -9,45 +28,48 @@ const enterButton = document.querySelector('#enter-roam');
 const mobileButtons = document.querySelectorAll('[data-move]');
 const roomButtons = document.querySelectorAll('[data-room]');
 
-const roomDefinitions = [
+const rooms = [
   {
     id: 'atrium',
     kicker: 'Museum Agent Atrium',
     title: '导览大厅',
-    label: 'AI-Native Archive Atrium',
+    concept: 'AI-Native Archive Atrium',
     description: '主入口、Museum Agent 导览台与全馆空间索引。作品、项目、Prompt、Skill、成员、历史和建设现场在这里被组织成可选择的路线。',
     href: '../archive/index.html',
     image: '../assets/space-concepts/ai-native-archive-atrium.jpg',
     position: new THREE.Vector3(0, 0, 0),
-    color: 0xff6b4a,
-    secondary: 0x9ce37d,
-    nodes: ['Works', 'Projects', 'Prompts', 'Skills', 'Members', 'History']
+    camera: new THREE.Vector3(0, 2.65, 18),
+    target: new THREE.Vector3(0, 2.6, -4.5),
+    accent: 0xff6b4a,
+    secondary: 0x9ce37d
   },
   {
     id: 'construction',
     kicker: 'Human on the Loop',
     title: '建设现场展厅',
-    label: 'AI Construction Site Museum',
+    concept: 'AI Construction Site Museum',
     description: '把博物馆的生成过程本身作为展品：Prompt、Skill、代码、测试、提交记录、策展决策和贡献记录共同形成一条建设路线。',
     href: '../progress/index.html',
     image: '../assets/space-concepts/ai-construction-site-museum.jpg',
-    position: new THREE.Vector3(-27, 0, -26),
-    color: 0xe7c15f,
-    secondary: 0xff6b4a,
-    nodes: ['Prompt', 'Source', 'Skill', 'Commit', 'Validate', 'Curate']
+    position: new THREE.Vector3(-34, 0, -20),
+    camera: new THREE.Vector3(-34, 2.7, -4.2),
+    target: new THREE.Vector3(-34, 2.6, -26),
+    accent: 0xe7c15f,
+    secondary: 0xff6b4a
   },
   {
     id: 'starmap',
     kicker: 'Community Star Map',
     title: '社群星图展厅',
-    label: 'Community Star-Map Museum',
+    concept: 'Community Star-Map Museum',
     description: '把作品、项目、成员、历史、研究问题和未来方向转译成社群关系星图。Museum Agent 可以生成 5 分钟、15 分钟或研究路线。',
     href: '../members/index.html',
     image: '../assets/space-concepts/community-star-map-museum.jpg',
-    position: new THREE.Vector3(27, 0, -26),
-    color: 0x9ce37d,
-    secondary: 0xe7c15f,
-    nodes: ['HUDOIT', 'Works', 'Tools', 'AI Native', 'Community', 'Future']
+    position: new THREE.Vector3(34, 0, -20),
+    camera: new THREE.Vector3(34, 5.2, -2.5),
+    target: new THREE.Vector3(34, 1.8, -24),
+    accent: 0x9ce37d,
+    secondary: 0xe7c15f
   }
 ];
 
@@ -55,51 +77,64 @@ let renderer;
 let scene;
 let camera;
 let textureLoader;
+let materials;
+let activeRoom = rooms[0];
 let lastFrameTime = performance.now();
 let elapsedTime = 0;
-let starField;
-let activeRoom = roomDefinitions[0];
 let yaw = 0;
 let pitch = -0.08;
 let isDragging = false;
 let lastPointer = { x: 0, y: 0 };
+let ambientStars;
+let frameCount = 0;
 
 const keys = new Set();
 const mobileMoves = new Set();
 const animated = {
   rings: [],
-  pulses: [],
-  stars: []
+  floaters: [],
+  pulseLights: [],
+  starMaps: []
 };
 
 const player = {
-  position: new THREE.Vector3(0, 2.5, 22),
-  speed: 12.5
+  position: rooms[0].camera.clone(),
+  speed: 13
 };
 
 init();
 
 function init() {
   try {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x07080b);
-    scene.fog = new THREE.FogExp2(0x07080b, 0.012);
+    materials = createMaterialLibrary();
     textureLoader = new THREE.TextureLoader();
 
-    camera = new THREE.PerspectiveCamera(66, window.innerWidth / window.innerHeight, 0.1, 260);
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050607);
+    scene.fog = new THREE.FogExp2(0x050607, 0.0085);
+
+    camera = new THREE.PerspectiveCamera(64, window.innerWidth / window.innerHeight, 0.1, 260);
+    setLookAtFromTarget(rooms[0].target);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.domElement.setAttribute('data-space-canvas', 'true');
     stage.appendChild(renderer.domElement);
 
-    addWorld();
-    roomDefinitions.forEach((room, index) => addRoom(room, index));
-    addWayfindingPaths();
+    addLighting();
+    addMuseumGround();
+    buildAtrium(rooms[0]);
+    buildConstructionHall(rooms[1]);
+    buildStarMapHall(rooms[2]);
+    addConnectorPaths();
+    addAmbientStars();
     bindControls();
-    setActiveRoom(roomDefinitions[0], true);
+    setActiveRoom(rooms[0], true);
+    exposeDebugStats();
 
     document.body.dataset.threeReady = 'true';
     window.__spaceReady = true;
@@ -109,392 +144,430 @@ function init() {
   }
 }
 
-function addWorld() {
-  scene.add(new THREE.HemisphereLight(0xf2f0e6, 0x14181c, 1.6));
+function addLighting() {
+  scene.add(new THREE.HemisphereLight(0xf2f0e6, 0x111314, 1.9));
 
-  const key = new THREE.DirectionalLight(0xf2f0e6, 2.3);
-  key.position.set(-12, 20, 14);
+  const key = new THREE.DirectionalLight(0xf2f0e6, 3.2);
+  key.position.set(-10, 26, 18);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.near = 1;
+  key.shadow.camera.far = 88;
   scene.add(key);
 
-  const red = new THREE.PointLight(0xff6b4a, 34, 70, 1.6);
-  red.position.set(0, 9, 3);
-  scene.add(red);
-
-  const green = new THREE.PointLight(0x9ce37d, 26, 80, 1.7);
-  green.position.set(16, 10, -22);
-  scene.add(green);
-
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(96, 82),
-    new THREE.MeshStandardMaterial({ color: 0x111316, roughness: 0.84, metalness: 0.08 })
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.z = -12;
-  scene.add(floor);
-
-  const grid = new THREE.GridHelper(96, 48, 0xb8b4a8, 0x2f3436);
-  grid.position.z = -12;
-  grid.material.opacity = 0.16;
-  grid.material.transparent = true;
-  scene.add(grid);
-
-  starField = createAmbientStars();
-  scene.add(starField);
-
-  const titlePanel = new THREE.Mesh(
-    new THREE.PlaneGeometry(16, 2.2),
-    new THREE.MeshBasicMaterial({ map: createTextTexture('code2art museum', 'AI 原生 3D 展馆', '#f2f0e6', '#ff6b4a'), transparent: true, side: THREE.DoubleSide })
-  );
-  titlePanel.position.set(0, 7.2, 16);
-  titlePanel.rotation.x = -0.1;
-  scene.add(titlePanel);
+  [
+    [0xff6b4a, 0, 6, 4, 42],
+    [0x9ce37d, 34, 7, -16, 44],
+    [0xe7c15f, -34, 7, -16, 44]
+  ].forEach(([color, x, y, z, distance]) => {
+    const light = new THREE.PointLight(color, 9, distance, 1.8);
+    light.position.set(x, y, z);
+    scene.add(light);
+    animated.pulseLights.push(light);
+  });
 }
 
-function addRoom(room, index) {
+function addMuseumGround() {
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(96, 76),
+    new THREE.MeshStandardMaterial({ color: 0x161715, roughness: 0.86, metalness: 0.08 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(0, -0.04, -14);
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const grid = new THREE.GridHelper(96, 48, 0x6e675c, 0x2d302d);
+  grid.position.set(0, 0.02, -14);
+  grid.material.opacity = 0.14;
+  grid.material.transparent = true;
+  scene.add(grid);
+}
+
+function buildAtrium(room) {
   const group = new THREE.Group();
+  group.name = 'AI-Native Archive Atrium';
   group.position.copy(room.position);
   group.userData.room = room;
   scene.add(group);
 
-  const color = new THREE.Color(room.color);
+  const shell = createAtriumShell(materials, { width: 28, depth: 22, height: 10 });
+  group.add(shell);
+
+  addConceptBackdrop(group, room, 14.7, 8.25, [0, 5.1, -10.82], room.accent);
+  addHallTitle(group, room, [0, 9.25, -10.25]);
+
+  const lowerStairs = createStepStairs(materials, 8, 9.5);
+  lowerStairs.position.set(0, 0.04, 8.2);
+  group.add(lowerStairs);
+
+  addAgentRouteCore(group, room, [0, 1.35, 0.55], 4.3, ['Works', 'Projects', 'Prompts', 'Skills', 'Members', 'History']);
+
+  const archive = createArchiveStack(materials, 7, 7);
+  archive.position.set(-10.8, 1.1, -5.8);
+  archive.rotation.y = Math.PI / 2;
+  group.add(archive);
+
+  const promptLab = createProcessTable(materials, 5.2);
+  promptLab.position.set(-9.3, 0.05, 2.9);
+  promptLab.rotation.y = Math.PI / 2;
+  group.add(promptLab);
+
+  const members = createMemberWall(materials, 6.2, 3.1);
+  members.position.set(7.9, 3.0, -7.8);
+  members.rotation.y = -0.25;
+  group.add(members);
+
+  const timeline = createTimelineWall('COMMUNITY HISTORY', ['2016', '2020', '2024', 'AI'], room.accent);
+  timeline.position.set(11.45, 3.2, -2.4);
+  timeline.rotation.y = -Math.PI / 2;
+  group.add(timeline);
+
+  [
+    ['ARCHIVE STACKS', -11.75, 5.85, -6.2, Math.PI / 2],
+    ['PROMPT / SKILL LAB', -11.75, 2.85, 3.0, Math.PI / 2],
+    ['MEMBER WALL', 7.9, 5.35, -7.15, -0.25],
+    ['CONSTRUCTION / PROCESS', 10.7, 2.25, 4.4, -Math.PI / 2],
+    ['RESEARCH ROOMS', -3.8, 4.4, -9.55, 0]
+  ].forEach(([label, x, y, z, rot]) => {
+    const sign = createSmallSign(label, room.secondary);
+    sign.position.set(x, y, z);
+    sign.rotation.y = rot;
+    group.add(sign);
+  });
+
+  const sideDoor = createPortalDoor(materials, 'RESEARCH', '#9ce37d');
+  sideDoor.position.set(-4.4, 1.85, -10.44);
+  group.add(sideDoor);
+
+  const processDoor = createPortalDoor(materials, 'BUILD PROCESS', '#ff6b4a');
+  processDoor.position.set(10.85, 1.75, 4.4);
+  processDoor.rotation.y = -Math.PI / 2;
+  group.add(processDoor);
+}
+
+function buildConstructionHall(room) {
+  const group = new THREE.Group();
+  group.name = 'AI Construction Site Museum';
+  group.position.copy(room.position);
+  group.userData.room = room;
+  scene.add(group);
+
+  const shell = createAtriumShell(materials, { width: 29, depth: 22, height: 9.2 });
+  group.add(shell);
+  addConceptBackdrop(group, room, 14.7, 8.25, [0, 5.1, -10.82], room.accent);
+  addHallTitle(group, room, [0, 9.05, -10.25]);
+
+  const scaffold = createScaffold(materials, 13.5, 6.2, 4.2);
+  scaffold.position.set(5.2, 0.25, -3.2);
+  group.add(scaffold);
+
+  const suspended = createFloatingPanel('ASSEMBLING NEW EXHIBIT', 'AI agents organize, annotate, connect.', '#e7c15f');
+  suspended.position.set(4.3, 5.25, -4.35);
+  group.add(suspended);
+  animated.floaters.push({ mesh: suspended, baseY: suspended.position.y, offset: 0.4 });
+
+  addAgentRouteCore(group, room, [-1.2, 1.28, 1.4], 4.7, ['Prompt Card', 'Source Code', 'Skill Module', 'Member', 'Commit', 'Validate']);
+
+  for (let i = 0; i < 5; i += 1) {
+    const table = createProcessTable(materials, 3.8);
+    table.position.set(-7.2 + i * 3.6, 0.04, 5.6);
+    table.rotation.y = i % 2 ? 0.08 : -0.08;
+    group.add(table);
+  }
+
+  const robotA = createRobotArm(materials);
+  robotA.position.set(8.4, 0.18, 3.1);
+  robotA.rotation.y = -0.4;
+  group.add(robotA);
+
+  const robotB = createRobotArm(materials);
+  robotB.position.set(10.3, 0.18, 6.0);
+  robotB.rotation.y = -1.15;
+  robotB.scale.setScalar(0.9);
+  group.add(robotB);
+
+  const logPanel = createFloatingPanel('BUILD LOG', 'prompt / code / commit / validation', '#ff6b4a');
+  logPanel.position.set(9.9, 2.35, 0.15);
+  logPanel.rotation.y = -0.35;
+  group.add(logPanel);
+
+  const promptWorkflow = createFloatingPanel('PROMPT WORKFLOW', 'context -> harness -> loop -> exhibit', '#e7c15f');
+  promptWorkflow.position.set(5.9, 3.1, 2.2);
+  promptWorkflow.rotation.y = -0.42;
+  group.add(promptWorkflow);
+
+  const archive = createArchiveStack(materials, 6, 6);
+  archive.position.set(-11.2, 1.25, -4.8);
+  archive.rotation.y = Math.PI / 2;
+  group.add(archive);
+
+  ['CURATORIAL DECISIONS', 'AI AGENTS AT WORK', 'LIVING ARCHIVE', 'TEST / VALIDATION'].forEach((label, i) => {
+    const sign = createSmallSign(label, i % 2 ? room.secondary : room.accent);
+    sign.position.set(-9.5 + i * 6.2, i < 2 ? 5.3 : 2.7, i < 2 ? -8.1 : 0.8);
+    sign.rotation.y = i === 0 ? 0 : i === 1 ? -0.2 : i === 2 ? Math.PI / 2 : -0.35;
+    group.add(sign);
+  });
+}
+
+function buildStarMapHall(room) {
+  const group = new THREE.Group();
+  group.name = 'Community Star-Map Museum';
+  group.position.copy(room.position);
+  group.userData.room = room;
+  scene.add(group);
+
+  const shell = createAtriumShell(materials, { width: 31, depth: 22, height: 9.6 });
+  group.add(shell);
+  addConceptBackdrop(group, room, 14.7, 8.25, [0, 5.1, -10.82], room.accent);
+  addHallTitle(group, room, [0, 9.15, -10.25]);
+
+  const starmap = createFloorStarMap(materials, 8.6, 150, 17);
+  starmap.position.set(0, 0.1, 0.75);
+  group.add(starmap);
+  animated.starMaps.push(starmap);
+
+  addAgentRouteCore(group, room, [0, 1.25, 0.85], 6.5, ['HUDOIT', 'Works', 'Tools', 'AI Native', 'Community', 'Future'], true);
+
+  const doorData = [
+    ['WORKS GALLERY', -8.7, -4.8, 0.32],
+    ['PROJECTS HALL', 0, -9.45, 0],
+    ['PROMPT / SKILL LAB', 8.7, -4.8, -0.32],
+    ['HISTORY ARCHIVE', -11.2, 1.8, Math.PI / 2],
+    ['RESEARCH ROOM', 11.2, 1.8, -Math.PI / 2],
+    ['BUILD PROCESS', 8.8, 6.3, -0.65],
+    ['MEMBER WALL', -8.8, 6.3, 0.65]
+  ];
+  doorData.forEach(([label, x, z, rot]) => {
+    const door = createPortalDoor(materials, label, '#9ce37d');
+    door.position.set(x, 1.74, z);
+    door.rotation.y = rot;
+    group.add(door);
+  });
+
+  const routePanel = createFloatingPanel('ROUTE', '5 MIN / 15 MIN / RESEARCH', '#f2f0e6');
+  routePanel.position.set(11.2, 4.25, 2.6);
+  routePanel.rotation.y = -Math.PI / 2.3;
+  group.add(routePanel);
+
+  const balconyLeft = createGlassRail(8.2, materials);
+  balconyLeft.position.set(-7.6, 4.75, -2.7);
+  group.add(balconyLeft);
+  const balconyRight = createGlassRail(8.2, materials);
+  balconyRight.position.set(7.6, 4.75, -2.7);
+  group.add(balconyRight);
+}
+
+function addConceptBackdrop(group, room, width, height, position, accent) {
+  const image = createImagePlane(textureLoader, room.image, width, height);
+  image.position.set(position[0], position[1], position[2]);
+  image.renderOrder = 3;
+  group.add(image);
+
+  const glowFrame = new THREE.Group();
+  const top = createLightStrip(width + 0.6, accent, true);
+  top.position.set(position[0], position[1] + height / 2 + 0.16, position[2] + 0.06);
+  glowFrame.add(top);
+  const bottom = createLightStrip(width + 0.15, accent, true);
+  bottom.position.set(position[0], position[1] - height / 2 - 0.16, position[2] + 0.06);
+  glowFrame.add(bottom);
+  [-width / 2 - 0.18, width / 2 + 0.18].forEach((x) => {
+    const side = createLightStrip(height + 0.4, accent, false);
+    side.position.set(position[0] + x, position[1], position[2] + 0.06);
+    glowFrame.add(side);
+  });
+  group.add(glowFrame);
+}
+
+function addHallTitle(group, room, position) {
+  const texture = createLabelTexture({
+    eyebrow: room.kicker,
+    title: room.concept,
+    subtitle: room.description,
+    width: 1400,
+    height: 340,
+    accent: `#${room.accent.toString(16).padStart(6, '0')}`
+  });
+  const sign = plane(10.8, 2.62, new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }), position);
+  sign.renderOrder = 5;
+  group.add(sign);
+}
+
+function addAgentRouteCore(group, room, position, radius, labels, wide = false) {
+  const color = new THREE.Color(room.accent);
   const secondary = new THREE.Color(room.secondary);
+  const center = new THREE.Vector3(position[0], position[1], position[2]);
 
-  addRoomShell(group, color, secondary);
-  addConceptPoster(group, room);
-  addRoomTitle(group, room, color);
-  addAgentCore(group, room, index);
-  addArchiveNodes(group, room, color, secondary);
-
-  if (room.id === 'construction') {
-    addConstructionLanguage(group, color);
-  }
-  if (room.id === 'starmap') {
-    addStarMapLanguage(group, color, secondary);
-  }
-}
-
-function addRoomShell(group, color, secondary) {
-  const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1d1d, roughness: 0.8, metalness: 0.15 });
-  const platform = new THREE.Mesh(new THREE.BoxGeometry(20, 0.35, 15), floorMaterial);
-  platform.position.y = 0.05;
-  group.add(platform);
-
-  const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x2c2c2a, roughness: 0.72, metalness: 0.08 });
-  const backWall = new THREE.Mesh(new THREE.BoxGeometry(20, 7, 0.42), wallMaterial);
-  backWall.position.set(0, 3.5, -7.3);
-  group.add(backWall);
-
-  const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.42, 5.4, 15), wallMaterial);
-  leftWall.position.set(-10.2, 2.7, 0);
-  group.add(leftWall);
-
-  const rightWall = leftWall.clone();
-  rightWall.position.x = 10.2;
-  group.add(rightWall);
-
-  const lintel = new THREE.Mesh(
-    new THREE.BoxGeometry(20.8, 0.22, 0.32),
-    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.72 })
+  const orb = new THREE.Mesh(
+    new THREE.SphereGeometry(wide ? 0.64 : 0.58, 48, 24),
+    new THREE.MeshStandardMaterial({ color: 0xf2f0e6, roughness: 0.32, metalness: 0.12, emissive: color, emissiveIntensity: 0.34 })
   );
-  lintel.position.set(0, 7.05, -7.02);
-  group.add(lintel);
+  orb.position.copy(center);
+  orb.castShadow = true;
+  group.add(orb);
+  animated.floaters.push({ mesh: orb, baseY: center.y, offset: room.position.x * 0.01 });
 
-  [-6.5, 0, 6.5].forEach((x) => {
-    const uplight = new THREE.PointLight(secondary, 3.6, 12, 2);
-    uplight.position.set(x, 2.5, -5.6);
-    group.add(uplight);
-  });
-}
-
-function addConceptPoster(group, room) {
-  const texture = textureLoader.load(room.image);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
-
-  const poster = new THREE.Mesh(
-    new THREE.PlaneGeometry(10.8, 6.08),
-    new THREE.MeshBasicMaterial({ map: texture, toneMapped: false })
-  );
-  poster.position.set(0, 3.65, -7.06);
-  poster.renderOrder = 2;
-  group.add(poster);
-
-  const frame = new THREE.Mesh(
-    new THREE.BoxGeometry(11.25, 6.5, 0.1),
-    new THREE.MeshBasicMaterial({ color: 0xf2f0e6, transparent: true, opacity: 0.08 })
-  );
-  frame.position.set(0, 3.65, -7.12);
-  group.add(frame);
-}
-
-function addRoomTitle(group, room, color) {
-  const label = new THREE.Mesh(
-    new THREE.PlaneGeometry(9.4, 1.9),
-    new THREE.MeshBasicMaterial({ map: createRoomLabelTexture(room, color), transparent: true, side: THREE.DoubleSide, depthWrite: false })
-  );
-  label.position.set(0, 6.95, -6.74);
-  label.renderOrder = 4;
-  group.add(label);
-}
-
-function addAgentCore(group, room, index) {
-  const color = new THREE.Color(room.color);
-  const core = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.72, 2),
-    new THREE.MeshStandardMaterial({ color: 0xf2f0e6, emissive: color.clone().multiplyScalar(0.36), roughness: 0.28, metalness: 0.2 })
-  );
-  core.position.set(0, 1.45, 1.5);
-  group.add(core);
-  animated.pulses.push({ mesh: core, offset: index * 0.9, base: 0.72 });
-
-  [1.8, 2.8, 4.1].forEach((radius, ringIndex) => {
+  [radius * 0.36, radius * 0.55, radius * 0.78, radius].forEach((r, i) => {
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(radius, 0.018, 8, 128),
-      new THREE.MeshBasicMaterial({ color: room.color, transparent: true, opacity: 0.38 - ringIndex * 0.07 })
+      new THREE.TorusGeometry(r, 0.018, 8, 180),
+      new THREE.MeshBasicMaterial({ color: i % 2 ? room.secondary : room.accent, transparent: true, opacity: 0.25 - i * 0.025 })
     );
+    ring.position.set(center.x, 0.18 + i * 0.02, center.z);
     ring.rotation.x = Math.PI / 2;
-    ring.position.set(0, 0.26 + ringIndex * 0.035, 1.5);
     group.add(ring);
-    animated.rings.push({ mesh: ring, speed: 0.14 + ringIndex * 0.08, offset: index });
+    animated.rings.push({ mesh: ring, speed: 0.06 + i * 0.03 });
   });
 
-  const prompt = new THREE.Mesh(
-    new THREE.PlaneGeometry(5.8, 0.82),
-    new THREE.MeshBasicMaterial({ map: createTextTexture('Museum Agent', 'personalized route ready', '#f2f0e6', '#b8b4a8'), transparent: true, depthWrite: false })
+  const agentPrompt = plane(
+    wide ? 5.4 : 4.7,
+    0.9,
+    new THREE.MeshBasicMaterial({
+      map: createLabelTexture({
+        title: 'Museum Agent',
+        subtitle: wide ? 'route: 5 min / 15 min / research' : 'spatial route ready',
+        width: 900,
+        height: 220,
+        accent: `#${room.accent.toString(16).padStart(6, '0')}`
+      }),
+      transparent: true,
+      depthWrite: false
+    }),
+    [center.x, center.y + 1.06, center.z + 0.04],
+    [-0.18, 0, 0]
   );
-  prompt.position.set(0, 2.55, 1.5);
-  prompt.renderOrder = 3;
-  group.add(prompt);
-}
+  agentPrompt.renderOrder = 8;
+  group.add(agentPrompt);
 
-function addArchiveNodes(group, room, color, secondary) {
-  const center = new THREE.Vector3(0, 0.45, 1.5);
-  const radius = room.id === 'starmap' ? 5.8 : 4.7;
-
-  room.nodes.forEach((label, nodeIndex) => {
-    const angle = -Math.PI * 0.88 + (nodeIndex / room.nodes.length) * Math.PI * 1.76;
-    const x = Math.cos(angle) * radius;
-    const z = 1.4 + Math.sin(angle) * radius * 0.78;
-    const nodePosition = new THREE.Vector3(x, 0.56, z);
-    const nodeColor = nodeIndex % 2 === 0 ? color : secondary;
-
+  labels.forEach((label, index) => {
+    const angle = -Math.PI * 0.86 + (index / labels.length) * Math.PI * 1.72;
+    const x = center.x + Math.cos(angle) * radius * 0.86;
+    const z = center.z + Math.sin(angle) * radius * 0.65;
+    const nodeColor = index % 2 ? secondary : color;
     const node = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.46, 0.62, 0.24, 32),
-      new THREE.MeshStandardMaterial({ color: 0x232523, emissive: nodeColor.clone().multiplyScalar(0.2), roughness: 0.44, metalness: 0.22 })
+      new THREE.CylinderGeometry(0.46, 0.62, 0.18, 36),
+      new THREE.MeshStandardMaterial({ color: 0x1f211f, roughness: 0.42, metalness: 0.18, emissive: nodeColor, emissiveIntensity: 0.22 })
     );
-    node.position.copy(nodePosition);
+    node.position.set(x, 0.32, z);
+    node.castShadow = true;
     group.add(node);
 
     const halo = new THREE.Mesh(
-      new THREE.TorusGeometry(0.94, 0.018, 6, 72),
-      new THREE.MeshBasicMaterial({ color: nodeColor, transparent: true, opacity: 0.56 })
+      new THREE.TorusGeometry(0.95, 0.016, 8, 96),
+      new THREE.MeshBasicMaterial({ color: nodeColor, transparent: true, opacity: 0.58 })
     );
     halo.rotation.x = Math.PI / 2;
-    halo.position.copy(nodePosition);
-    halo.position.y = 0.73;
+    halo.position.set(x, 0.48, z);
     group.add(halo);
-    animated.rings.push({ mesh: halo, speed: 0.22 + nodeIndex * 0.018, offset: nodeIndex });
+    animated.rings.push({ mesh: halo, speed: 0.12 + index * 0.012 });
 
-    const labelPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.05, 0.64),
-      new THREE.MeshBasicMaterial({ map: createSmallLabelTexture(label, nodeColor), transparent: true, side: THREE.DoubleSide, depthWrite: false })
+    const labelPlane = plane(
+      wide ? 2.25 : 1.85,
+      0.58,
+      new THREE.MeshBasicMaterial({
+        map: createLabelTexture({ title: label, width: 520, height: 180, accent: `#${nodeColor.getHexString()}`, align: 'center' }),
+        transparent: true,
+        depthWrite: false
+      }),
+      [x, 0.95, z],
+      [-0.28, 0, 0]
     );
-    labelPlane.position.set(x, 1.25, z);
-    labelPlane.rotation.x = -0.24;
+    labelPlane.renderOrder = 7;
     group.add(labelPlane);
 
-    addLine(group, center, nodePosition, nodeColor, 0.48);
+    group.add(lineBetween(new THREE.Vector3(center.x, 0.42, center.z), new THREE.Vector3(x, 0.42, z), nodeColor, 0.42));
   });
 }
 
-function addConstructionLanguage(group, color) {
-  const railMaterial = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 });
-
-  for (let i = 0; i < 7; i += 1) {
-    const x = -7 + i * 2.3;
-    const column = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4.5, 0.08), railMaterial);
-    column.position.set(x, 2.4, -1.8);
-    group.add(column);
-  }
-
-  [1.4, 2.6, 3.8].forEach((y) => {
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(15, 0.055, 0.055), railMaterial);
-    beam.position.set(0, y, -1.8);
-    group.add(beam);
-  });
-
-  ['BUILD LOG', 'TEST / VALIDATION', 'CURATORIAL DECISION'].forEach((label, i) => {
-    const panel = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.4, 1.2),
-      new THREE.MeshBasicMaterial({ map: createSmallLabelTexture(label, new THREE.Color(0xe7c15f)), transparent: true, depthWrite: false })
+function addConnectorPaths() {
+  const hub = new THREE.Vector3(0, 0.1, 8.8);
+  rooms.slice(1).forEach((room) => {
+    const destination = room.position.clone().add(new THREE.Vector3(0, 0.1, 8.6));
+    const path = new THREE.CatmullRomCurve3([
+      hub,
+      new THREE.Vector3(room.position.x * 0.36, 0.1, 1.5),
+      destination
+    ]);
+    const points = path.getPoints(90);
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const line = new THREE.Line(
+      geometry,
+      new THREE.LineBasicMaterial({ color: room.accent, transparent: true, opacity: 0.52 })
     );
-    panel.position.set(-5.3 + i * 5.3, 2.8 + (i % 2) * 0.55, -1.55);
-    panel.renderOrder = 5;
-    group.add(panel);
+    scene.add(line);
   });
 }
 
-function addStarMapLanguage(group, color, secondary) {
-  const points = [];
-  for (let i = 0; i < 80; i += 1) {
-    const angle = Math.random() * Math.PI * 2;
-    const radius = Math.sqrt(Math.random()) * 7.1;
-    points.push(new THREE.Vector3(Math.cos(angle) * radius, 0.72, 1.1 + Math.sin(angle) * radius * 0.82));
-  }
-
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const stars = new THREE.Points(
-    geometry,
-    new THREE.PointsMaterial({ color, size: 0.07, transparent: true, opacity: 0.86 })
-  );
-  group.add(stars);
-  animated.stars.push(stars);
-
-  for (let i = 0; i < points.length - 1; i += 7) {
-    addLine(group, points[i], points[i + 1], i % 2 ? color : secondary, 0.22);
-  }
-
-  [2.8, 4.8, 6.8].forEach((radius, i) => {
-    const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(radius, 0.012, 6, 160),
-      new THREE.MeshBasicMaterial({ color: i % 2 ? secondary : color, transparent: true, opacity: 0.18 })
-    );
-    ring.rotation.x = Math.PI / 2;
-    ring.position.set(0, 0.78 + i * 0.025, 1.1);
-    group.add(ring);
-    animated.rings.push({ mesh: ring, speed: 0.05 + i * 0.025, offset: i });
-  });
-}
-
-function addWayfindingPaths() {
-  const hub = new THREE.Vector3(0, 0.18, 8);
-  roomDefinitions.forEach((room) => {
-    const entry = room.position.clone().add(new THREE.Vector3(0, 0.18, 6.5));
-    addLine(scene, hub, entry, new THREE.Color(room.color), 0.62);
-  });
-}
-
-function createAmbientStars() {
-  const geometry = new THREE.BufferGeometry();
+function addAmbientStars() {
   const positions = [];
   const colors = [];
-  const palette = [new THREE.Color(0x9ce37d), new THREE.Color(0xff6b4a), new THREE.Color(0xe7c15f), new THREE.Color(0xf2f0e6)];
-
-  for (let i = 0; i < 1200; i += 1) {
-    const radius = 38 + Math.random() * 84;
-    const angle = Math.random() * Math.PI * 2;
-    const height = 5 + Math.random() * 55;
-    positions.push(Math.cos(angle) * radius, height, Math.sin(angle) * radius - 18);
+  const palette = [new THREE.Color(0xff6b4a), new THREE.Color(0x9ce37d), new THREE.Color(0xe7c15f), new THREE.Color(0xf2f0e6)];
+  let seed = 42;
+  const random = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+  for (let i = 0; i < 1300; i += 1) {
+    const radius = 45 + random() * 92;
+    const angle = random() * Math.PI * 2;
+    const height = 4 + random() * 56;
+    positions.push(Math.cos(angle) * radius, height, Math.sin(angle) * radius - 22);
     const color = palette[i % palette.length];
     colors.push(color.r, color.g, color.b);
   }
-
+  const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  return new THREE.Points(
-    geometry,
-    new THREE.PointsMaterial({ size: 0.075, vertexColors: true, transparent: true, opacity: 0.62 })
+  ambientStars = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.065, vertexColors: true, transparent: true, opacity: 0.58 }));
+  scene.add(ambientStars);
+}
+
+function createSmallSign(label, accent) {
+  return plane(
+    3.2,
+    0.7,
+    new THREE.MeshBasicMaterial({
+      map: createLabelTexture({ title: label, width: 760, height: 190, accent: `#${accent.toString(16).padStart(6, '0')}`, align: 'center' }),
+      transparent: true,
+      depthWrite: false
+    })
   );
 }
 
-function addLine(parent, from, to, color, opacity) {
-  const geometry = new THREE.BufferGeometry().setFromPoints([from, to]);
-  const line = new THREE.Line(
-    geometry,
-    new THREE.LineBasicMaterial({ color, transparent: true, opacity })
-  );
-  parent.add(line);
-  return line;
-}
-
-function createRoomLabelTexture(room, color) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1200;
-  canvas.height = 360;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(7, 8, 11, 0.72)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = `#${color.getHexString()}`;
-  ctx.lineWidth = 6;
-  ctx.strokeRect(24, 24, canvas.width - 48, canvas.height - 48);
-  ctx.fillStyle = `#${color.getHexString()}`;
-  ctx.font = '700 42px Arial, sans-serif';
-  ctx.fillText(room.kicker.toUpperCase(), 58, 88);
-  ctx.fillStyle = '#f2f0e6';
-  ctx.font = '700 72px Arial, sans-serif';
-  ctx.fillText(room.label, 58, 178);
-  ctx.fillStyle = '#b8b4a8';
-  ctx.font = '400 36px Arial, sans-serif';
-  wrapText(ctx, room.description, 58, 250, 1080, 46);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
-  return texture;
-}
-
-function createTextTexture(title, detail, titleColor = '#f2f0e6', detailColor = '#b8b4a8') {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(7, 8, 11, 0.72)';
-  roundRect(ctx, 18, 18, canvas.width - 36, canvas.height - 36, 34);
-  ctx.fill();
-  ctx.fillStyle = titleColor;
-  ctx.font = '700 62px Georgia, serif';
-  ctx.fillText(title, 76, 112);
-  ctx.fillStyle = detailColor;
-  ctx.font = '400 34px Arial, sans-serif';
-  ctx.fillText(detail, 78, 172);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-function createSmallLabelTexture(label, color) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 180;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(10, 12, 16, 0.78)';
-  roundRect(ctx, 18, 20, canvas.width - 36, canvas.height - 40, 18);
-  ctx.fill();
-  ctx.strokeStyle = `#${color.getHexString()}`;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  ctx.fillStyle = '#f2f0e6';
-  ctx.font = '700 42px Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(label, canvas.width / 2, 108);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-function roundRect(ctx, x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = [...text];
-  let line = '';
-  for (const word of words) {
-    const test = line + word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, y);
-      line = word;
-      y += lineHeight;
-    } else {
-      line = test;
+function createTimelineWall(title, years, accent) {
+  const group = new THREE.Group();
+  group.add(box(6.4, 3.2, 0.16, materials.blackPanel, [0, 1.6, 0]));
+  const titleSign = createSmallSign(title, accent);
+  titleSign.position.set(0, 2.85, 0.12);
+  group.add(titleSign);
+  years.forEach((year, index) => {
+    const x = -2.5 + index * 1.65;
+    group.add(box(0.08, 0.08, 0.12, index % 2 ? materials.greenGlow : materials.redGlow, [x, 1.48, 0.18]));
+    const label = createSmallSign(year, index % 2 ? 0x9ce37d : 0xff6b4a);
+    label.scale.setScalar(0.38);
+    label.position.set(x, 1.95 + (index % 2) * 0.32, 0.2);
+    group.add(label);
+    if (index < years.length - 1) {
+      group.add(lineBetween(new THREE.Vector3(x, 1.48, 0.19), new THREE.Vector3(x + 1.65, 1.48, 0.19), accent, 0.62));
     }
-  }
-  ctx.fillText(line, x, y);
+  });
+  return group;
+}
+
+function createFloatingPanel(title, subtitle, accent) {
+  const group = new THREE.Group();
+  const panel = plane(
+    4.1,
+    1.35,
+    new THREE.MeshBasicMaterial({
+      map: createLabelTexture({ title, subtitle, width: 900, height: 280, accent }),
+      transparent: true,
+      depthWrite: false
+    })
+  );
+  panel.renderOrder = 9;
+  group.add(panel);
+  group.add(box(4.25, 1.48, 0.08, materials.darkGlass, [0, 0, -0.04]));
+  return group;
 }
 
 function bindControls() {
@@ -536,10 +609,8 @@ function bindControls() {
 
   roomButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      const room = roomDefinitions.find((item) => item.id === button.dataset.room);
-      if (room) {
-        focusRoom(room);
-      }
+      const room = rooms.find((item) => item.id === button.dataset.room);
+      if (room) focusRoom(room);
     });
   });
 
@@ -556,17 +627,21 @@ function bindControls() {
 }
 
 function updateLook(dx, dy) {
-  yaw -= dx * 0.0024;
-  pitch -= dy * 0.0021;
-  pitch = Math.max(-0.82, Math.min(0.52, pitch));
+  yaw -= dx * 0.0022;
+  pitch -= dy * 0.0019;
+  pitch = Math.max(-0.8, Math.min(0.52, pitch));
 }
 
 function focusRoom(room) {
-  const target = room.position.clone();
-  player.position.set(target.x, 2.5, target.z + 12);
-  yaw = Math.atan2(target.x - player.position.x, -(target.z - player.position.z));
-  pitch = -0.11;
+  player.position.copy(room.camera);
+  setLookAtFromTarget(room.target);
   setActiveRoom(room, true);
+}
+
+function setLookAtFromTarget(target) {
+  const direction = target.clone().sub(player.position);
+  yaw = Math.atan2(direction.x, -direction.z);
+  pitch = Math.atan2(direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z));
 }
 
 function updateMovement(delta) {
@@ -582,8 +657,8 @@ function updateMovement(delta) {
   if (move.lengthSq() > 0) {
     move.normalize().multiplyScalar(player.speed * delta);
     player.position.add(move);
-    player.position.x = Math.max(-43, Math.min(43, player.position.x));
-    player.position.z = Math.max(-45, Math.min(28, player.position.z));
+    player.position.x = Math.max(-51, Math.min(51, player.position.x));
+    player.position.z = Math.max(-42, Math.min(23, player.position.z));
   }
 
   camera.position.copy(player.position);
@@ -593,20 +668,16 @@ function updateMovement(delta) {
 }
 
 function updateActiveRoom() {
-  let closest = roomDefinitions[0];
+  let closest = rooms[0];
   let closestDistance = Infinity;
-
-  roomDefinitions.forEach((room) => {
+  rooms.forEach((room) => {
     const distance = room.position.distanceTo(player.position);
     if (distance < closestDistance) {
       closest = room;
       closestDistance = distance;
     }
   });
-
-  if (closest !== activeRoom) {
-    setActiveRoom(closest);
-  }
+  if (closest !== activeRoom) setActiveRoom(closest);
 }
 
 function setActiveRoom(room, force = false) {
@@ -622,6 +693,7 @@ function setActiveRoom(room, force = false) {
 
 function animate() {
   requestAnimationFrame(animate);
+  frameCount += 1;
   const now = performance.now();
   const delta = Math.min((now - lastFrameTime) / 1000, 0.05);
   lastFrameTime = now;
@@ -630,23 +702,56 @@ function animate() {
   updateMovement(delta);
   updateActiveRoom();
 
-  if (starField) starField.rotation.y += delta * 0.012;
-
-  animated.rings.forEach(({ mesh, speed, offset }) => {
+  if (ambientStars) ambientStars.rotation.y += delta * 0.006;
+  animated.rings.forEach(({ mesh, speed }) => {
     mesh.rotation.z += delta * speed;
-    mesh.material.opacity = Math.max(0.09, mesh.material.opacity + Math.sin(elapsedTime + offset) * 0.0008);
   });
-
-  animated.pulses.forEach(({ mesh, offset, base }) => {
-    const scale = 1 + Math.sin(elapsedTime * 1.7 + offset) * 0.05;
-    mesh.scale.setScalar(scale * base / 0.72);
+  animated.floaters.forEach(({ mesh, baseY, offset }) => {
+    mesh.position.y = baseY + Math.sin(elapsedTime * 1.2 + offset) * 0.075;
   });
-
-  animated.stars.forEach((stars, index) => {
-    stars.rotation.y += delta * (0.018 + index * 0.005);
+  animated.pulseLights.forEach((light, index) => {
+    light.intensity = 8 + Math.sin(elapsedTime * 1.4 + index) * 1.4;
+  });
+  animated.starMaps.forEach((map) => {
+    map.rotation.y += delta * 0.018;
   });
 
   renderer.render(scene, camera);
+}
+
+function exposeDebugStats() {
+  const counts = { meshes: 0, lines: 0, points: 0, lights: 0, groups: 0 };
+  scene.traverse((object) => {
+    if (object.isMesh) counts.meshes += 1;
+    if (object.isLine) counts.lines += 1;
+    if (object.isPoints) counts.points += 1;
+    if (object.isLight) counts.lights += 1;
+    if (object.isGroup) counts.groups += 1;
+  });
+  window.__spaceMuseumDebug = {
+    version: 'high-fidelity-procedural-assets',
+    rooms: rooms.map((room) => ({
+      id: room.id,
+      title: room.title,
+      concept: room.concept,
+      position: room.position.toArray()
+    })),
+    counts,
+    get activeRoom() {
+      return activeRoom.id;
+    },
+    get frameCount() {
+      return frameCount;
+    },
+    get cameraPosition() {
+      return camera.position.toArray();
+    }
+  };
+  document.body.dataset.spaceDebugVersion = 'high-fidelity-procedural-assets';
+  document.body.dataset.spaceDebugRooms = String(rooms.length);
+  document.body.dataset.spaceDebugMeshes = String(counts.meshes);
+  document.body.dataset.spaceDebugLines = String(counts.lines);
+  document.body.dataset.spaceDebugPoints = String(counts.points);
 }
 
 function onResize() {
