@@ -11,15 +11,35 @@ const {
   description = "实验编程社区的在线数字博物馆、档案馆与研究平台。"
 } = Astro.props;
 
-const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-const href = (path: string) => `${base}${path.replace(/^\//, "")}`;
+const currentSegments = Astro.url.pathname.split("/").filter(Boolean);
+const currentDepth = currentSegments.length;
+const currentPrefix = currentDepth > 0 ? "../".repeat(currentDepth) : "";
+const href = (path: string) => {
+  const cleanPath = path.replace(/^\/+|\/+$/g, "");
+  const isFile = /\.[a-z0-9]+$/i.test(cleanPath);
+  return `${currentPrefix}${cleanPath ? (isFile ? cleanPath : `${cleanPath}/index.html`) : "index.html"}`;
+};
 
 const nav = [
   { label: "展览", href: href("/exhibitions/") },
   { label: "档案", href: href("/archive/") },
   { label: "研究", href: href("/research/") },
   { label: "成员", href: href("/members/") },
-  { label: "3D 展馆", href: href("/space/") },
+  {
+    label: "3D 展馆",
+    items: [
+      {
+        label: "版本 1",
+        title: "漫游",
+        href: href("/space/")
+      },
+      {
+        label: "版本 2",
+        title: "效果图视差",
+        href: href("/space/v2/")
+      }
+    ]
+  },
   { label: "参与", href: href("/contribute/") }
 ];
 ---
@@ -40,7 +60,28 @@ const nav = [
         <span>code2art museum</span>
       </a>
       <nav class="primary-nav" aria-label="Primary navigation">
-        {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+        {nav.map((item) => (
+          "items" in item ? (
+            <div class="nav-dropdown">
+              <a class="nav-dropdown-trigger" href={item.items[0].href} aria-haspopup="true">
+                <span>{item.label}</span>
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M3 4.5 6 7.5 9 4.5" />
+                </svg>
+              </a>
+              <div class="nav-dropdown-menu">
+                {item.items.map((child) => (
+                  <a href={child.href}>
+                    <span>{child.label}</span>
+                    <strong>{child.title}</strong>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <a href={item.href}>{item.label}</a>
+          )
+        ))}
       </nav>
     </header>
     <slot />

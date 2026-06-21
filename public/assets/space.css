@@ -3,11 +3,12 @@
   --ink: #f2f0e6;
   --muted: #b8b4a8;
   --paper: #07080b;
-  --glass: rgba(10, 12, 16, .72);
+  --glass: rgba(10, 12, 16, .68);
   --line: rgba(242, 240, 230, .18);
   --green: #9ce37d;
   --red: #ff6b4a;
   --gold: #e7c15f;
+  --charcoal: #171717;
 }
 
 * {
@@ -63,7 +64,7 @@ a {
   justify-content: space-between;
   gap: 16px;
   padding: 14px clamp(14px, 3vw, 34px);
-  background: linear-gradient(180deg, rgba(7, 8, 11, .92), rgba(7, 8, 11, .55));
+  background: linear-gradient(180deg, rgba(7, 8, 11, .9), rgba(7, 8, 11, .42));
   border-bottom: 1px solid var(--line);
 }
 
@@ -106,7 +107,7 @@ a {
 .space-panel {
   left: clamp(14px, 4vw, 42px);
   bottom: clamp(18px, 5vw, 44px);
-  width: min(430px, calc(100vw - 28px));
+  width: min(470px, calc(100vw - 28px));
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -120,11 +121,12 @@ a {
   font-size: .78rem;
   font-weight: 780;
   text-transform: uppercase;
+  letter-spacing: .08em;
 }
 
 .space-panel h1 {
   margin: 0 0 10px;
-  font-size: 2rem;
+  font-size: clamp(1.55rem, 3vw, 2.25rem);
   line-height: 1.05;
 }
 
@@ -154,10 +156,48 @@ a {
 }
 
 .space-actions button {
-  color: #091007;
-  background: var(--green);
-  border-color: var(--green);
+  color: #190c07;
+  background: var(--red);
+  border-color: var(--red);
   font-weight: 760;
+}
+
+.space-itinerary {
+  top: 86px;
+  right: clamp(14px, 4vw, 34px);
+  display: grid;
+  width: min(230px, calc(100vw - 28px));
+  padding: 12px;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--glass);
+}
+
+.space-itinerary p {
+  margin: 0 0 3px;
+  color: var(--gold);
+  font-size: .76rem;
+  font-weight: 780;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.space-itinerary button {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid rgba(242, 240, 230, .16);
+  border-radius: 6px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, .05);
+  cursor: pointer;
+  text-align: left;
+}
+
+.space-itinerary button:hover,
+.space-itinerary button.is-active {
+  border-color: rgba(255, 107, 74, .72);
+  background: rgba(255, 107, 74, .14);
 }
 
 .space-guide {
@@ -244,7 +284,26 @@ a {
   }
 
   .space-panel {
-    bottom: 118px;
+    bottom: 112px;
+  }
+
+  .space-itinerary {
+    top: auto;
+    right: auto;
+    left: 14px;
+    bottom: 14px;
+    width: calc(100vw - 142px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .space-itinerary p {
+    grid-column: 1 / -1;
+  }
+
+  .space-itinerary button {
+    min-height: 38px;
+    padding: 7px 8px;
+    text-align: center;
   }
 
   .space-guide {

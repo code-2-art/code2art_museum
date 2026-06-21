@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>3D 漫游展馆 | code2art museum</title>
-    <meta name="description" content="code2art museum 的开放世界式 3D 漫游展馆。">
+    <title>AI 原生 3D 展馆 | code2art museum</title>
+    <meta name="description" content="code2art museum 的 AI 原生三展厅 3D 漫游空间。">
     <link rel="icon" href="../assets/code2art-mark.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../assets/space.css">
     <script type="importmap">
@@ -26,27 +26,35 @@
         </a>
         <nav class="space-nav" aria-label="3D museum navigation">
           <a href="../index.html">首页</a>
-          <a href="../exhibits/index.html">展品</a>
-          <a href="../exhibits/c2a-001/index.html">详情</a>
-          <a href="../profiles/index.html">成员</a>
-          <a href="../contributors/index.html">贡献者</a>
+          <a href="../exhibitions/index.html">展览</a>
+          <a href="../archive/index.html">档案</a>
+          <a href="../research/index.html">研究</a>
+          <a href="../members/index.html">成员</a>
+          <a href="../progress/index.html">建设进程</a>
         </nav>
       </header>
 
       <section class="space-hud space-panel" aria-labelledby="space-title">
-        <p class="space-kicker">Open World Layer</p>
-        <h1 id="space-title">3D 漫游式展馆</h1>
-        <p>同一套博物馆结构，换成可漫游的深空展馆：走到任一展区前，按 Enter 或点击按钮进入对应页面。</p>
+        <p id="space-kicker" class="space-kicker">AI Native 3D Layer</p>
+        <h1 id="space-title">AI 原生 3D 展馆</h1>
+        <p id="space-description">三张概念图被转译为三个可漫游展厅：导览大厅、建设现场、社群星图。靠近任一展厅，Museum Agent 会切换路线说明。</p>
         <div class="space-actions">
           <button id="enter-roam" type="button">开始漫游</button>
-          <a id="active-link" href="../exhibits/index.html">进入当前展区</a>
+          <a id="active-link" href="../archive/index.html">打开当前档案入口</a>
         </div>
       </section>
+
+      <aside class="space-hud space-itinerary" aria-label="Museum Agent routes">
+        <p>选择展厅</p>
+        <button type="button" data-room="atrium">导览大厅</button>
+        <button type="button" data-room="construction">建设现场</button>
+        <button type="button" data-room="starmap">社群星图</button>
+      </aside>
 
       <aside class="space-hud space-guide" aria-label="Controls">
         <p>WASD / 方向键移动</p>
         <p>拖拽或鼠标控制视角</p>
-        <p>Enter 打开最近展区</p>
+        <p>Enter 打开当前展厅入口</p>
       </aside>
 
       <div class="space-reticle" aria-hidden="true"></div>
@@ -64,6 +72,6 @@
         <p class="space-noscript">3D 展馆需要启用 JavaScript。你仍可访问普通版展馆。</p>
       </noscript>
     </main>
-    <script type="module" src="../assets/space.js"></script>
+    <script type="module" src="../assets/space.js?v=20260621-hifi"></script>
   </body>
 </html>
