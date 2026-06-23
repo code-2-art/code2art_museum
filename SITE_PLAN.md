@@ -18,22 +18,22 @@ tags: [site-plan, information-architecture, references]
 
 新的核心交互原则：从目录式博物馆，转向导览式博物馆。档案搜索框不只是检索入口，而是与博物馆 Agent 对话的入口。每个访问者进入博物馆时，都应该像获得一位私人导览员，可以按自己的兴趣、身份、问题和知识背景获得不同的参观路线、档案解释与参与建议。
 
-## 参考案例
+## 调研方向
 
 架构参考：
 
-- ZKM：整体机构结构、媒体艺术研究框架、展览、档案、教育、可访问性、数字项目与机构叙事。
+- ZKM：https://zkm.de/en 整体机构结构、媒体艺术研究框架、展览、档案、教育、可访问性、数字项目与机构叙事。
 
 辅助参考：
 
-- Rhizome ArtBase：数字原生作品档案、保存版本、数字作品文档方式。
-- Whitney artport：线上展览入口、网络艺术委托创作、主题化网页展区。
-- OpenProcessing：创意编程社区参与、成员作品、学习、分享与作品集机制。
-- Ars Electronica Archive：艺术与科技历史、节展、奖项、分类体系与国际媒体艺术语境。
+- Rhizome ArtBase：https://artbase.rhizome.org/wiki/Main_Page 数字原生作品档案、保存版本、数字作品文档方式。
+- Whitney artport：https://whitney.org/artport 线上展览入口、网络艺术委托创作、主题化网页展区。
+- OpenProcessing：https://openprocessing.org/ 创意编程社区参与、成员作品、学习、分享与作品集机制。
+- Ars Electronica Archive：https://ars.electronica.art/archive/en/ 艺术与科技历史、节展、奖项、分类体系与国际媒体艺术语境。
 
 内容策展参考：
 
-- CreativeApplications.Net：创意技术项目报道、案例策展、作品技术语境与创作者信息组织方式。它不作为整体网站架构主参考，但适合启发 `当前项目`、`案例研究`、`技术观察`、`精选作品报道` 等栏目。
+- CreativeApplications.Net：https://www.creativeapplications.net/ 创意技术项目报道、案例策展、作品技术语境与创作者信息组织方式。它不作为整体网站架构主参考，但适合启发 `当前项目`、`案例研究`、`技术观察`、`精选作品报道` 等栏目。
 
 （旧世代）3D / 沉浸式 / 元宇宙参考：
 
