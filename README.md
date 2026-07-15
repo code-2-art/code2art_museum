@@ -9,9 +9,22 @@ The code2art museum is a community-built, never-ending online digital museum tha
 
 ## 项目链接与会议入口
 
-- 原型一（Agent）: <https://code-2-art.github.io/code2art_museum/>
-- 原型二（三维漫游）: <https://code-2-art.github.io/code2art_museum/space/index.html>
-- 原型三（全景）：<https://code-2-art.github.io/code2art_museum/space/v2/index.html>
+原型一（Agent）: <https://code-2-art.github.io/code2art_museum/>
+<br/>
+ <img width="540"  alt="image" src="https://github.com/user-attachments/assets/38d759bb-410e-4272-bc77-be4c7dd34d29" />
+<br/>
+
+原型二（三维漫游）: <https://code-2-art.github.io/code2art_museum/space/index.html>
+<br/>
+ <img width="540"   alt="image" src="https://github.com/user-attachments/assets/8989fe56-5bc3-4130-8329-4dd73f67ab09" />
+<br/>
+
+原型三（全景）：<https://code-2-art.github.io/code2art_museum/space/v2/index.html>
+<br/>
+ <img width="540"   alt="image" src="https://github.com/user-attachments/assets/24263927-7ac2-44b6-b6ad-cdcf43829b68" />
+
+<br/>
+
 - 博物馆GitHub Repo：<https://github.com/code-2-art/code2art_museum/>
 - [code2art museum 愿景](./VISION.md)
 - [code2art museum 立项书](#section2)
