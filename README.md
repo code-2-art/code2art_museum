@@ -9,13 +9,15 @@ The code2art museum is a community-built, never-ending online digital museum tha
 
 ## 项目链接与会议入口
 
+- 原型一（Agent）: <https://code-2-art.github.io/code2art_museum/>
+- 原型二（三维漫游）: <https://code-2-art.github.io/code2art_museum/space/index.html>
+- 原型三（全景）：<https://code-2-art.github.io/code2art_museum/space/v2/index.html>
+- 博物馆GitHub Repo：<https://github.com/code-2-art/code2art_museum/>
 - [code2art museum 愿景](./VISION.md)
 - [code2art museum 立项书](#section2)
-- 实验编程官网：<https://code2art.com/>
-- 博物馆GitHub Repo：<https://github.com/code-2-art/code2art_museum/>
-- 博物馆测试页面: <https://code-2-art.github.io/code2art_museum/>
 - 议题与任务：使用本仓库 GitHub Issues。
 - 会议入口：每周三社群线上会议。
+- 实验编程官网：<https://code2art.com/>
 
 ## 如何参与
 
