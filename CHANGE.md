@@ -2,6 +2,41 @@
 
 This file records incremental website versions and the user-facing features added or changed in each version.
 
+## 2026-07-31 - Main Site Platform MVP
+
+### Added
+
+- Added a DeepSeek V4 Flash enhancement path for Museum Agent through a Supabase Edge Function, while preserving immediate deterministic archive answers as the offline and error fallback.
+- Added evidence-only prompt framing, request validation, exact-origin CORS, publishable-key authorization, per-client throttling, a configurable daily model budget, and a 24-hour server-side answer cache.
+- Turned Museum Agent into a working archive guide with intent-aware local search, route answers, and linked evidence records.
+- Added full archive search and type filters across exhibits, profiles, and history nodes.
+- Generated a dedicated static detail page for every exhibit instead of routing most records to one sample.
+- Added a contributor portal with local drafts, passwordless Supabase Auth, private uploads, and submission status tracking.
+- Added cloud draft editing, requested-change resubmission, safe draft deletion, cumulative attachment limits, and recoverable upload cleanup.
+- Added a curator-only review queue and an atomic review function backed by `app_metadata.role = curator` authorization.
+- Added a least-privilege Supabase migration with RLS on all submission tables and private per-user Storage paths.
+- Hardened submission inputs with HTTP(S) source validation, tool/link/file limits, normalized legacy bare domains, and column-level insert grants that exclude review metadata.
+- Added privacy/submission guidance, a 404 page, canonical/Open Graph metadata, `robots.txt`, a sitemap, and GitHub Actions build CI.
+- Added strict Zod validation for exhibit, profile, and history JSON, including duplicate-ID rejection.
+- Added Museum Agent request-policy and content-contract unit tests plus an AST-based verifier for every generated HTML link, resource, and fragment target.
+- Added a gated GitHub Pages deployment workflow and production runbook for public Supabase variables, Auth redirects, curator access, release checks, and rollback.
+
+### Changed
+
+- Rebuilt mobile navigation as a collapsed menu; the 3D version submenu no longer occupies the mobile header by default.
+- Kept both 3D exhibition versions frozen and unchanged while main-site functionality advances.
+
+### Verification
+
+- Astro production build succeeds with Node 24 and emits the deployable site to `docs/`.
+- Nineteen unit tests pass, and the build verifier confirms all local targets across 20 generated HTML files.
+- Desktop and 390 px mobile browser checks passed without horizontal overflow or console errors.
+- Real-browser checks cover Museum Agent evidence, archive search, connected submission UI, mobile navigation, and both frozen 3D version links.
+- Supabase cloud migrations are applied to the connected project; RLS advisor query-plan warnings were resolved and anonymous reads/review RPC calls return `401`.
+- The deployed Museum Agent function rejects invalid publishable keys and disallowed browser origins; until `DEEPSEEK_API_KEY` is configured it returns an explicit fallback response and the homepage keeps the local answer.
+- A real passwordless session has produced one submitted record and one private attachment, verifying contributor login, upload, and submission persistence against the cloud project.
+- Curator role assignment, signed attachment review, requested changes, and approval still require an authenticated curator end-to-end check.
+
 ## 2026-06-21 - 3D Museum Version 1 Walkable Scene
 
 ### Changed

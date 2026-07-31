@@ -52,11 +52,11 @@ const visibleHistory = historyNodes.slice(-3).reverse();
       </div>
       <div class="index-list">
         {currentExhibitions.map((exhibit) => (
-          <article class="index-row" id={exhibit.id}>
+          <a class="index-row" id={exhibit.id} href={`exhibits/${exhibit.id}/index.html`}>
             <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
             <h3>{exhibit.title}</h3>
             <p>{exhibit.description}</p>
-          </article>
+          </a>
         ))}
       </div>
     </section>

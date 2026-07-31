@@ -52,6 +52,23 @@ code2art museum 会用 AI 原生的方式被建造和维护。AI 不只是辅助
 
 详细参与方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+### 本地主站开发
+
+主站使用 Astro 5、TypeScript 和 Tailwind 4，生产输出位于 `docs/`。
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run check
+```
+
+`npm run check` 会执行 TypeScript 检查、馆藏 schema 与 Museum Agent 单元测试、生产构建，以及生成站点的内部链接/资源校验。
+
+投稿、附件与审核使用 Supabase。复制 `.env.example` 的公开变量名到未跟踪的 `.env`，并按 [`supabase/README.md`](supabase/README.md) 应用数据库迁移。浏览器端只使用 Supabase publishable key，服务端密钥不得写入仓库或前端环境变量。未配置 Supabase 时，公开档案和 Museum Agent 仍可使用，投稿页只提供本地草稿。
+
+正式环境配置、GitHub Pages Actions 发布、Auth 回调、策展权限与回滚步骤见 [`DEPLOYMENT.md`](DEPLOYMENT.md)。
+
 <br/>
 
 **加入实验编程社群**  *入口见公众号菜单*

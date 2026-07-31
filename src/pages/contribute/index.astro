@@ -1,5 +1,6 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
+import SubmissionPortal from "@/components/SubmissionPortal.astro";
 
 const paths = [
   ["提交作品", "补充作品、项目、Prompt、Skill、课程或历史节点。"],
@@ -26,5 +27,6 @@ const paths = [
         </article>
       ))}
     </section>
+    <SubmissionPortal />
   </main>
 </SiteLayout>

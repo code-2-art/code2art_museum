@@ -1,0 +1,232 @@
+---
+import { isSupabaseConfigured } from "@/lib/supabase";
+---
+
+<section class="curator-console" data-curator-console>
+  <div class="service-notice">
+    <strong>{isSupabaseConfigured ? "审核服务已连接" : "审核服务未配置"}</strong>
+    <span>此页面只向 `app_metadata.role = curator` 的登录用户返回投稿数据。</span>
+  </div>
+  <div class="curator-login" data-curator-login>
+    <p data-curator-auth>请使用策展成员邮箱登录。</p>
+    <form class="auth-form curator-auth-form" data-curator-auth-form>
+      <label><span>邮箱</span><input type="email" name="email" autocomplete="email" required /></label>
+      <button class="button-primary" type="submit" disabled={!isSupabaseConfigured}>发送登录链接</button>
+    </form>
+  </div>
+  <div class="curator-session" data-curator-session hidden>
+    <span data-curator-session-label></span>
+    <button class="button-quiet" type="button" data-curator-sign-out>退出当前账号</button>
+  </div>
+  <div class="curator-queue" data-curator-queue hidden>
+    <div class="curator-toolbar">
+      <div>
+        <p class="eyebrow">Review queue</p>
+        <h2>待审核投稿</h2>
+      </div>
+      <button class="button-quiet" type="button" data-curator-refresh>刷新</button>
+    </div>
+    <p class="form-status" data-curator-status aria-live="polite"></p>
+    <div class="curator-list" data-curator-list></div>
+  </div>
+</section>
+
+<script>
+  import { getSupabaseClient } from "@/lib/supabase";
+  import type { SubmissionMediaRow, SubmissionRow } from "@/types/database";
+
+  const consoleRoot = document.querySelector<HTMLElement>("[data-curator-console]");
+  if (consoleRoot) {
+    const client = getSupabaseClient();
+    const login = consoleRoot.querySelector<HTMLElement>("[data-curator-login]");
+    const authForm = consoleRoot.querySelector<HTMLFormElement>("[data-curator-auth-form]");
+    const authText = consoleRoot.querySelector<HTMLElement>("[data-curator-auth]");
+    const queue = consoleRoot.querySelector<HTMLElement>("[data-curator-queue]");
+    const list = consoleRoot.querySelector<HTMLElement>("[data-curator-list]");
+    const status = consoleRoot.querySelector<HTMLElement>("[data-curator-status]");
+    const refresh = consoleRoot.querySelector<HTMLButtonElement>("[data-curator-refresh]");
+    const sessionBar = consoleRoot.querySelector<HTMLElement>("[data-curator-session]");
+    const sessionLabel = consoleRoot.querySelector<HTMLElement>("[data-curator-session-label]");
+    const signOut = consoleRoot.querySelector<HTMLButtonElement>("[data-curator-sign-out]");
+
+    const setStatus = (message: string, kind: "info" | "success" | "error" = "info") => {
+      if (!status) return;
+      status.textContent = message;
+      status.dataset.kind = kind;
+    };
+    type ReviewMedia = SubmissionMediaRow & { signedUrl: string | null };
+    const renderEntry = (item: SubmissionRow, media: ReviewMedia[]) => {
+      const article = document.createElement("article");
+      article.className = "curator-item";
+      article.dataset.id = String(item.id);
+      const heading = document.createElement("div");
+      heading.className = "curator-item-heading";
+      const meta = document.createElement("p");
+      meta.className = "row-meta";
+      meta.textContent = `#${item.id} / ${item.submission_type} / ${item.status}`;
+      const title = document.createElement("h3");
+      title.textContent = item.title;
+      const creator = document.createElement("p");
+      creator.textContent = `${item.creator_name}${item.creation_year ? ` / ${item.creation_year}` : ""}`;
+      heading.append(meta, title, creator);
+      const summary = document.createElement("p");
+      summary.className = "curator-summary";
+      summary.textContent = item.summary;
+      const details = document.createElement("details");
+      const detailsLabel = document.createElement("summary");
+      detailsLabel.textContent = "查看过程、工具和来源";
+      const detailsBody = document.createElement("div");
+      detailsBody.className = "curator-details";
+      const lines = [
+        item.process_notes && `过程：${item.process_notes}`,
+        item.tools.length && `工具：${item.tools.join(" / ")}`,
+        item.source_links.length && `来源：${item.source_links.join("\n")}`,
+        `许可：${item.license}`
+      ].filter(Boolean);
+      lines.forEach((value) => {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = String(value);
+        detailsBody.append(paragraph);
+      });
+      if (media.length) {
+        const mediaHeading = document.createElement("strong");
+        mediaHeading.textContent = "私有附件";
+        detailsBody.append(mediaHeading);
+        media.forEach((file) => {
+          const link = document.createElement("a");
+          link.className = "curator-media-link";
+          link.textContent = `${file.original_name} / ${(file.size_bytes / 1024 / 1024).toFixed(2)} MB`;
+          if (file.signedUrl) {
+            link.href = file.signedUrl;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+          } else {
+            link.removeAttribute("href");
+          }
+          detailsBody.append(link);
+        });
+      }
+      details.append(detailsLabel, detailsBody);
+      const note = document.createElement("textarea");
+      note.rows = 3;
+      note.maxLength = 4000;
+      note.placeholder = "审核意见；要求补充或拒绝时请说明原因";
+      note.value = item.review_note || "";
+      const actions = document.createElement("div");
+      actions.className = "curator-actions";
+      const actionOptions = [
+        ["in_review", "开始审核"],
+        ["changes_requested", "要求补充"],
+        ["approved", "通过"],
+        ["rejected", "不收录"]
+      ] as const;
+      actionOptions.forEach(([nextStatus, label]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = nextStatus === "approved" ? "button-primary" : "button-quiet";
+        button.textContent = label;
+        button.addEventListener("click", async () => {
+          if (!client) return;
+          if (["changes_requested", "rejected"].includes(nextStatus) && !note.value.trim()) {
+            setStatus("要求补充或不收录时必须填写审核意见。", "error");
+            note.focus();
+            return;
+          }
+          actions.querySelectorAll("button").forEach((item) => item.setAttribute("disabled", ""));
+          const { error } = await client.rpc("review_submission", {
+            p_submission_id: item.id,
+            p_to_status: nextStatus,
+            p_note: note.value.trim() || null
+          });
+          if (error) {
+            setStatus(`审核写入失败：${error.message}`, "error");
+            actions.querySelectorAll("button").forEach((item) => item.removeAttribute("disabled"));
+          }
+          else {
+            setStatus(`投稿 #${item.id} 已更新为“${label}”。`, "success");
+            await loadQueue();
+          }
+        });
+        actions.append(button);
+      });
+      article.append(heading, summary, details, note, actions);
+      return article;
+    };
+    const loadQueue = async () => {
+      if (!client || !list) return;
+      setStatus("正在读取审核队列…");
+      const { data, error } = await client.from("submissions")
+        .select("*")
+        .in("status", ["submitted", "in_review", "changes_requested", "approved"])
+        .order("created_at", { ascending: true })
+        .limit(100);
+      if (error) {
+        setStatus(`无法读取审核队列：${error.message}`, "error");
+        return;
+      }
+      const items = data || [];
+      const submissionIds = items.map((item) => item.id);
+      let media: ReviewMedia[] = [];
+      if (submissionIds.length) {
+        const { data: mediaRows, error: mediaError } = await client.from("submission_media")
+          .select("*")
+          .in("submission_id", submissionIds);
+        if (mediaError) {
+          setStatus(`投稿已读取，但附件列表读取失败：${mediaError.message}`, "error");
+        } else {
+          media = await Promise.all((mediaRows || []).map(async (file) => {
+            const { data: signed } = await client.storage.from("submission-media").createSignedUrl(file.storage_path, 600);
+            return { ...file, signedUrl: signed?.signedUrl || null };
+          }));
+        }
+      }
+      list.replaceChildren(...items.map((item) => renderEntry(item, media.filter((file) => file.submission_id === item.id))));
+      setStatus(items.length ? `共 ${items.length} 条待处理记录。` : "当前没有待处理投稿。", "info");
+    };
+    const refreshAuth = async () => {
+      if (!client) return;
+      const { data: { session }, error } = await client.auth.getSession();
+      if (error) {
+        if (authText) authText.textContent = `登录状态读取失败：${error.message}`;
+        return;
+      }
+      const isCurator = session?.user.app_metadata?.role === "curator";
+      if (authText) authText.textContent = session ? (isCurator ? `策展成员：${session.user.email}` : "当前账号没有策展权限。") : "请使用策展成员邮箱登录。";
+      if (authForm) authForm.hidden = Boolean(session);
+      if (login) login.hidden = Boolean(isCurator);
+      if (sessionBar) sessionBar.hidden = !session;
+      if (sessionLabel) sessionLabel.textContent = session?.user.email
+        ? `${isCurator ? "策展账号" : "当前账号"}：${session.user.email}`
+        : "";
+      if (queue) queue.hidden = !isCurator;
+      if (isCurator) await loadQueue();
+      else list?.replaceChildren();
+    };
+
+    authForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!client) return;
+      const submitButton = authForm.querySelector<HTMLButtonElement>("button[type='submit']");
+      const email = String(new FormData(authForm).get("email") || "").trim();
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      if (submitButton) submitButton.disabled = true;
+      try {
+        const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+        if (authText) authText.textContent = error ? `登录链接发送失败：${error.message}` : "登录链接已发送，请检查邮箱。";
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+    refresh?.addEventListener("click", () => void loadQueue());
+    signOut?.addEventListener("click", async () => {
+      if (!client) return;
+      const { error } = await client.auth.signOut();
+      if (error) setStatus(`退出登录失败：${error.message}`, "error");
+      else await refreshAuth();
+    });
+    if (client) {
+      client.auth.onAuthStateChange(() => window.setTimeout(() => void refreshAuth(), 0));
+      void refreshAuth();
+    }
+  }
+</script>

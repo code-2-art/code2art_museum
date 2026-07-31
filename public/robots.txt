@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://code-2-art.github.io/code2art_museum/sitemap.xml

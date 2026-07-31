@@ -1,59 +1,111 @@
-export type Exhibit = {
+import { z } from "astro/zod";
+import {
+  exhibitSchema,
+  historyNodeSchema,
+  profileSchema,
+  type Exhibit,
+  type HistoryNode,
+  type Profile
+} from "./schemas";
+
+export type { Exhibit, HistoryNode, Profile } from "./schemas";
+
+export type MuseumRecord = {
   id: string;
-  title: string;
+  kind: "exhibit" | "profile" | "history";
   type: string;
-  author: string;
-  year: string;
-  tools: string[];
-  description: string;
-  process: string;
-  media: string[];
-  repo: string;
-  contributors: string[];
-  license: string;
-};
-
-export type Profile = {
-  id: string;
-  name: string;
-  avatar: string;
-  identity: string;
-  tools: string[];
-  representativeWorks: string[];
-  relationToCode2Art: string;
-  links: string[];
-  status: string;
-};
-
-export type HistoryNode = {
-  id: string;
-  year: string;
   title: string;
   description: string;
-  source: string;
-  status: string;
+  meta: string;
+  keywords: string[];
+  href: string;
 };
 
 const exhibitModules = import.meta.glob("../../content/exhibits/*.json", {
   eager: true,
   import: "default"
-}) as Record<string, Exhibit>;
+}) as Record<string, unknown>;
 
 const profileModules = import.meta.glob("../../content/profiles/*.json", {
   eager: true,
   import: "default"
-}) as Record<string, Profile>;
+}) as Record<string, unknown>;
 
 const historyModules = import.meta.glob("../../content/history/*.json", {
   eager: true,
   import: "default"
-}) as Record<string, HistoryNode>;
+}) as Record<string, unknown>;
 
-export const exhibits = Object.values(exhibitModules).sort((a, b) => a.id.localeCompare(b.id));
+function parseContent<T>(modules: Record<string, unknown>, schema: z.ZodType<T>, label: string) {
+  return Object.entries(modules).map(([path, value]) => {
+    const result = schema.safeParse(value);
+    if (result.success) return result.data;
 
-export const profiles = Object.values(profileModules).sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+    const issues = result.error.issues
+      .map((issue) => `${issue.path.join(".") || "record"}: ${issue.message}`)
+      .join("; ");
+    throw new Error(`Invalid ${label} content in ${path}: ${issues}`);
+  });
+}
 
-export const historyNodes = Object.values(historyModules).sort((a, b) => a.year.localeCompare(b.year));
+function assertUniqueIds(collections: Array<{ label: string; records: Array<{ id: string }> }>) {
+  const seen = new Map<string, string>();
+  for (const collection of collections) {
+    for (const record of collection.records) {
+      const previous = seen.get(record.id);
+      if (previous) throw new Error(`Duplicate museum record id "${record.id}" in ${previous} and ${collection.label}`);
+      seen.set(record.id, collection.label);
+    }
+  }
+}
+
+export const exhibits = parseContent(exhibitModules, exhibitSchema, "exhibit")
+  .sort((a, b) => a.id.localeCompare(b.id));
+
+export const profiles = parseContent(profileModules, profileSchema, "profile")
+  .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+
+export const historyNodes = parseContent(historyModules, historyNodeSchema, "history")
+  .sort((a, b) => a.year.localeCompare(b.year));
+
+assertUniqueIds([
+  { label: "exhibits", records: exhibits },
+  { label: "profiles", records: profiles },
+  { label: "history", records: historyNodes }
+]);
+
+export const museumRecords: MuseumRecord[] = [
+  ...exhibits.map((exhibit) => ({
+    id: exhibit.id,
+    kind: "exhibit" as const,
+    type: exhibit.type,
+    title: exhibit.title,
+    description: exhibit.description,
+    meta: `${exhibit.year} / ${exhibit.author}`,
+    keywords: [...exhibit.tools, ...exhibit.contributors, exhibit.process],
+    href: `/exhibits/${exhibit.id}/`
+  })),
+  ...profiles.map((profile) => ({
+    id: profile.id,
+    kind: "profile" as const,
+    type: "profile",
+    title: profile.name,
+    description: profile.relationToCode2Art,
+    meta: profile.identity,
+    keywords: [...profile.tools, ...profile.representativeWorks, profile.status],
+    href: `/members/#${profile.id}`
+  })),
+  ...historyNodes.map((node) => ({
+    id: node.id,
+    kind: "history" as const,
+    type: "history",
+    title: node.title,
+    description: node.description,
+    meta: `${node.year} / ${node.status}`,
+    keywords: [node.source, node.status],
+    href: `/archive/#${node.id}`
+  }))
+];
 
 export const buildProgress = [
   {

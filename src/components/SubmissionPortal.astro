@@ -1,0 +1,458 @@
+---
+import { isSupabaseConfigured } from "@/lib/supabase";
+
+const types = [
+  ["artwork", "作品"],
+  ["project", "项目"],
+  ["prompt_skill", "Prompt / Skill"],
+  ["course", "课程 / 案例"],
+  ["history", "历史线索"],
+  ["profile", "人物 Profile"]
+];
+---
+
+<section class="submission-portal" data-submission-portal data-configured={String(isSupabaseConfigured)}>
+  <div class="submission-intro">
+    <div>
+      <p class="eyebrow">Open call</p>
+      <h2>提交一条可核验的档案</h2>
+    </div>
+    <p>作品不会自动公开。提交后由策展成员核对来源、授权、人物信息和展示语境；需要补充时会保留修改意见。</p>
+  </div>
+
+  <div class="service-notice" data-service-notice>
+    <strong>{isSupabaseConfigured ? "投稿服务已连接" : "本地预览模式"}</strong>
+    <span>{isSupabaseConfigured ? "登录后可以提交并查看审核状态。" : "当前未连接云端投稿服务，可以填写并保存本地草稿。"}</span>
+  </div>
+
+  <div class="submission-workspace">
+    <aside class="submission-account">
+      <p class="eyebrow">Contributor account</p>
+      <h3>投稿身份</h3>
+      <p data-auth-state>尚未登录</p>
+      <form class="auth-form" data-auth-form>
+        <label>
+          <span>邮箱</span>
+          <input type="email" name="email" autocomplete="email" placeholder="name@example.com" required />
+        </label>
+        <button class="button-primary" type="submit" disabled={!isSupabaseConfigured}>发送登录链接</button>
+      </form>
+      <button class="button-quiet" type="button" data-sign-out hidden>退出登录</button>
+      <p class="form-note">使用邮箱登录链接，无需设置密码。登录只用于保存投稿归属和审核进度。</p>
+
+      <div class="submission-history">
+        <h3>我的投稿</h3>
+        <div data-submission-list>
+          <p class="form-note">登录后显示投稿状态。</p>
+        </div>
+      </div>
+    </aside>
+
+    <form class="submission-form" data-submission-form>
+      <div class="editing-notice" data-editing-notice hidden>
+        <div>
+          <strong data-editing-title></strong>
+          <span data-editing-context></span>
+        </div>
+        <button class="button-quiet" type="button" data-cancel-edit>取消修改</button>
+      </div>
+      <div class="form-grid">
+        <label>
+          <span>档案类型</span>
+          <select name="submission_type" required>
+            {types.map(([value, label]) => <option value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>创作年份</span>
+          <input name="creation_year" maxlength="24" placeholder="例如 2024 或 2010s" />
+        </label>
+      </div>
+      <label>
+        <span>标题</span>
+        <input name="title" minlength="2" maxlength="160" required />
+      </label>
+      <label>
+        <span>作者 / 团队</span>
+        <input name="creator_name" maxlength="120" required />
+      </label>
+      <label>
+        <span>摘要</span>
+        <textarea name="summary" minlength="20" maxlength="1200" rows="5" required placeholder="它是什么，为什么值得被收藏？"></textarea>
+      </label>
+      <label>
+        <span>过程与语境</span>
+        <textarea name="process_notes" maxlength="6000" rows="7" placeholder="创作过程、技术路径、展示方式及相关背景"></textarea>
+      </label>
+      <div class="form-grid">
+        <label>
+          <span>工具 / 技术</span>
+          <input name="tools" placeholder="p5.js, TouchDesigner, Codex" />
+        </label>
+        <label>
+          <span>许可方式</span>
+          <input name="license" maxlength="120" value="needs-review" />
+        </label>
+      </div>
+      <label>
+        <span>来源链接</span>
+        <textarea name="source_links" rows="4" placeholder="每行一个作品、仓库、报道或历史资料链接"></textarea>
+      </label>
+      <label class="file-field">
+        <span>附件</span>
+        <input name="media" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,application/pdf" />
+        <small>最多 5 个文件，单个不超过 25 MB；支持 JPG、PNG、WebP、GIF、MP4、PDF。</small>
+      </label>
+      <label class="check-field">
+        <input name="rights_confirmed" type="checkbox" required />
+        <span>我确认有权提交这些材料，并同意策展团队按<a href="../privacy/index.html">隐私与投稿说明</a>为核验和展示目的处理它们。</span>
+      </label>
+      <div class="form-actions">
+        <button class="button-quiet" type="button" data-save-draft>保存本地草稿</button>
+        <button class="button-primary" type="submit" data-submit-cloud disabled>提交审核</button>
+      </div>
+      <p class="form-status" data-form-status aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
+<script>
+  import { getSupabaseClient } from "@/lib/supabase";
+  import {
+    parseSubmissionSourceLinks,
+    parseSubmissionTools,
+    safeSubmissionFileName,
+    validateSubmissionFiles
+  } from "@/lib/submission-form";
+  import type { SubmissionRow, SubmissionType } from "@/types/database";
+
+  const portal = document.querySelector<HTMLElement>("[data-submission-portal]");
+  if (portal) {
+    const client = getSupabaseClient();
+    const authForm = portal.querySelector<HTMLFormElement>("[data-auth-form]");
+    const submissionForm = portal.querySelector<HTMLFormElement>("[data-submission-form]");
+    const authState = portal.querySelector<HTMLElement>("[data-auth-state]");
+    const signOut = portal.querySelector<HTMLButtonElement>("[data-sign-out]");
+    const cloudButton = portal.querySelector<HTMLButtonElement>("[data-submit-cloud]");
+    const saveDraft = portal.querySelector<HTMLButtonElement>("[data-save-draft]");
+    const status = portal.querySelector<HTMLElement>("[data-form-status]");
+    const list = portal.querySelector<HTMLElement>("[data-submission-list]");
+    const editingNotice = portal.querySelector<HTMLElement>("[data-editing-notice]");
+    const editingTitle = portal.querySelector<HTMLElement>("[data-editing-title]");
+    const editingContext = portal.querySelector<HTMLElement>("[data-editing-context]");
+    const cancelEdit = portal.querySelector<HTMLButtonElement>("[data-cancel-edit]");
+    const localDraftKey = "code2art-museum-submission-draft-v1";
+    let activeSubmission: SubmissionRow | null = null;
+    const statusLabels: Record<string, string> = {
+      draft: "草稿",
+      submitted: "已提交",
+      in_review: "审核中",
+      changes_requested: "待补充",
+      approved: "已通过",
+      rejected: "未收录",
+      published: "已发布"
+    };
+
+    const setStatus = (message: string, kind: "info" | "success" | "error" = "info") => {
+      if (!status) return;
+      status.textContent = message;
+      status.dataset.kind = kind;
+    };
+    const formValue = (data: FormData, name: string) => String(data.get(name) || "").trim();
+
+    const collectDraft = () => {
+      if (!submissionForm) return {};
+      const data = new FormData(submissionForm);
+      return Object.fromEntries(Array.from(data.entries()).filter(([, value]) => typeof value === "string"));
+    };
+    const restoreDraft = () => {
+      if (!submissionForm) return;
+      try {
+        const draft = JSON.parse(localStorage.getItem(localDraftKey) || "null") as Record<string, string> | null;
+        if (!draft) return;
+        Object.entries(draft).forEach(([name, value]) => {
+          const field = submissionForm.elements.namedItem(name);
+          if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+            if (field.type !== "checkbox" && field.type !== "file") field.value = value;
+          }
+        });
+        setStatus("已恢复这台设备上的本地草稿。", "info");
+      } catch {
+        localStorage.removeItem(localDraftKey);
+      }
+    };
+    const setFormField = (name: string, value: string) => {
+      if (!submissionForm) return;
+      const field = submissionForm.elements.namedItem(name);
+      if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+        if (field.type !== "checkbox" && field.type !== "file") field.value = value;
+      }
+    };
+    const resetEditingState = (restoreLocal = false) => {
+      activeSubmission = null;
+      if (editingNotice) editingNotice.hidden = true;
+      if (cloudButton) cloudButton.textContent = "提交审核";
+      submissionForm?.reset();
+      if (restoreLocal) restoreDraft();
+    };
+    const startEditing = (item: SubmissionRow) => {
+      if (!submissionForm || !["draft", "changes_requested"].includes(item.status)) return;
+      activeSubmission = item;
+      setFormField("submission_type", item.submission_type);
+      setFormField("creation_year", item.creation_year || "");
+      setFormField("title", item.title);
+      setFormField("creator_name", item.creator_name);
+      setFormField("summary", item.summary);
+      setFormField("process_notes", item.process_notes || "");
+      setFormField("tools", item.tools.join(", "));
+      setFormField("license", item.license);
+      setFormField("source_links", item.source_links.join("\n"));
+      const rights = submissionForm.elements.namedItem("rights_confirmed");
+      if (rights instanceof HTMLInputElement) rights.checked = false;
+      if (editingTitle) editingTitle.textContent = `正在修改投稿 #${item.id}：${item.title}`;
+      if (editingContext) editingContext.textContent = item.review_note ? `审核意见：${item.review_note}` : "修改后重新确认授权并提交。";
+      if (editingNotice) editingNotice.hidden = false;
+      if (cloudButton) cloudButton.textContent = item.status === "changes_requested" ? "重新提交审核" : "提交云端草稿";
+      setStatus("已载入云端投稿，附件输入只用于新增文件。", "info");
+      submissionForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    const renderSubmissions = (items: SubmissionRow[]) => {
+      if (!list) return;
+      if (items.length === 0) {
+        list.innerHTML = '<p class="form-note">还没有云端投稿。</p>';
+        return;
+      }
+      list.replaceChildren(...items.map((item) => {
+        const entry = document.createElement("article");
+        entry.className = "submission-status-item";
+        const label = document.createElement("span");
+        label.textContent = statusLabels[item.status] || item.status;
+        const title = document.createElement("strong");
+        title.textContent = item.title;
+        const time = document.createElement("time");
+        time.dateTime = item.updated_at;
+        time.textContent = new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium" }).format(new Date(item.updated_at));
+        entry.append(label, title, time);
+        if (item.review_note) {
+          const note = document.createElement("p");
+          note.textContent = `审核意见：${item.review_note}`;
+          entry.append(note);
+        }
+        if (["draft", "changes_requested"].includes(item.status)) {
+          const actions = document.createElement("div");
+          actions.className = "submission-status-actions";
+          const edit = document.createElement("button");
+          edit.type = "button";
+          edit.className = "button-quiet";
+          edit.textContent = item.status === "changes_requested" ? "继续修改" : "编辑草稿";
+          edit.addEventListener("click", () => startEditing(item));
+          actions.append(edit);
+          if (item.status === "draft") {
+            const discard = document.createElement("button");
+            discard.type = "button";
+            discard.className = "button-quiet";
+            discard.textContent = "删除草稿";
+            discard.addEventListener("click", () => void deleteDraft(item, actions));
+            actions.append(discard);
+          }
+          entry.append(actions);
+        }
+        return entry;
+      }));
+    };
+    async function deleteDraft(item: SubmissionRow, actions: HTMLElement) {
+      if (!client || !window.confirm(`确定删除云端草稿 #${item.id}？此操作会同时删除其私有附件。`)) return;
+      actions.querySelectorAll("button").forEach((button) => button.setAttribute("disabled", ""));
+      setStatus(`正在删除草稿 #${item.id}…`, "info");
+      try {
+        const { data: mediaRows, error: mediaError } = await client.from("submission_media")
+          .select("storage_path")
+          .eq("submission_id", item.id);
+        if (mediaError) throw mediaError;
+        const paths = (mediaRows || []).map((row) => row.storage_path);
+        if (paths.length) {
+          const { error: storageError } = await client.storage.from("submission-media").remove(paths);
+          if (storageError) throw storageError;
+        }
+        const { error: deleteError } = await client.from("submissions").delete().eq("id", item.id);
+        if (deleteError) throw deleteError;
+        if (activeSubmission?.id === item.id) resetEditingState(true);
+        setStatus(`云端草稿 #${item.id} 已删除。`, "success");
+        await refreshSession();
+      } catch (error) {
+        setStatus(`草稿删除失败，记录与未确认删除的附件已保留：${error instanceof Error ? error.message : "未知错误"}`, "error");
+        actions.querySelectorAll("button").forEach((button) => button.removeAttribute("disabled"));
+      }
+    }
+    const refreshSession = async () => {
+      if (!client) return;
+      const { data: { session }, error: sessionError } = await client.auth.getSession();
+      if (sessionError) {
+        setStatus(`登录状态读取失败：${sessionError.message}`, "error");
+        return;
+      }
+      if (authState) authState.textContent = session?.user.email ? `已登录：${session.user.email}` : "尚未登录";
+      if (authForm) authForm.hidden = Boolean(session);
+      if (signOut) signOut.hidden = !session;
+      if (cloudButton) cloudButton.disabled = !session;
+      if (!session) {
+        resetEditingState(true);
+        renderSubmissions([]);
+        return;
+      }
+      const { data, error } = await client.from("submissions").select("*").order("updated_at", { ascending: false }).limit(20);
+      if (error) setStatus(`读取投稿状态失败：${error.message}`, "error");
+      else renderSubmissions(data || []);
+    };
+
+    authForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!client) return;
+      const submitButton = authForm.querySelector<HTMLButtonElement>("button[type='submit']");
+      const email = formValue(new FormData(authForm), "email");
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      if (submitButton) submitButton.disabled = true;
+      try {
+        const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } });
+        setStatus(error ? `登录链接发送失败：${error.message}` : "登录链接已发送，请到邮箱中完成登录。", error ? "error" : "success");
+      } finally {
+        if (submitButton) submitButton.disabled = false;
+      }
+    });
+    signOut?.addEventListener("click", async () => {
+      await client?.auth.signOut();
+      await refreshSession();
+    });
+    saveDraft?.addEventListener("click", () => {
+      try {
+        localStorage.setItem(localDraftKey, JSON.stringify(collectDraft()));
+        setStatus("草稿已保存在这台设备上，附件不会写入本地草稿。", "success");
+      } catch {
+        setStatus("浏览器拒绝保存本地草稿，请检查隐私模式或存储权限。", "error");
+      }
+    });
+    cancelEdit?.addEventListener("click", () => resetEditingState(true));
+    submissionForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!client || !submissionForm || !submissionForm.reportValidity()) return;
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) {
+        setStatus("请先用邮箱登录，再提交审核。", "error");
+        return;
+      }
+      const formData = new FormData(submissionForm);
+      const files = formData.getAll("media").filter((value): value is File => value instanceof File && value.size > 0);
+      const fileError = validateSubmissionFiles(files);
+      if (fileError) {
+        setStatus(fileError, "error");
+        return;
+      }
+      const parsedTools = parseSubmissionTools(formValue(formData, "tools"));
+      if (parsedTools.error) {
+        setStatus(parsedTools.error, "error");
+        return;
+      }
+      const parsedLinks = parseSubmissionSourceLinks(formValue(formData, "source_links"));
+      if (parsedLinks.error) {
+        setStatus(parsedLinks.error, "error");
+        return;
+      }
+      if (cloudButton) cloudButton.disabled = true;
+      setStatus("正在保存投稿与附件…");
+      const payload = {
+        submission_type: formValue(formData, "submission_type") as SubmissionType,
+        title: formValue(formData, "title"),
+        creator_name: formValue(formData, "creator_name"),
+        creation_year: formValue(formData, "creation_year") || null,
+        summary: formValue(formData, "summary"),
+        process_notes: formValue(formData, "process_notes") || null,
+        tools: parsedTools.tools,
+        source_links: parsedLinks.links,
+        license: formValue(formData, "license") || "needs-review",
+        rights_confirmed: true
+      };
+      let submission: SubmissionRow | null = null;
+      let createdNew = false;
+      const uploadedPaths: string[] = [];
+      const uploadedMediaIds: number[] = [];
+      try {
+        if (activeSubmission) {
+          if (files.length) {
+            const { count, error: countError } = await client.from("submission_media")
+              .select("id", { count: "exact", head: true })
+              .eq("submission_id", activeSubmission.id);
+            if (countError) throw countError;
+            if ((count || 0) + files.length > 5) throw new Error("该投稿累计最多保留 5 个附件，请先删除草稿或联系策展成员处理旧附件。");
+          }
+          const { data, error } = await client.from("submissions").update({
+            ...payload,
+            status: "draft",
+            submitted_at: null
+          }).eq("id", activeSubmission.id).select("*").single();
+          if (error || !data) throw error || new Error("云端投稿不存在或已无法修改");
+          submission = data;
+          activeSubmission = data;
+        } else {
+          const { data, error } = await client.from("submissions").insert({
+            ...payload,
+            user_id: session.user.id,
+            status: "draft"
+          }).select("*").single();
+          if (error || !data) throw error || new Error("投稿保存失败");
+          submission = data;
+          createdNew = true;
+        }
+
+        for (const file of files) {
+          const path = `${session.user.id}/${submission.id}/${crypto.randomUUID()}-${safeSubmissionFileName(file.name)}`;
+          const { error: uploadError } = await client.storage.from("submission-media").upload(path, file, { upsert: false, contentType: file.type });
+          if (uploadError) throw uploadError;
+          uploadedPaths.push(path);
+          const { data: media, error: mediaError } = await client.from("submission_media").insert({
+            submission_id: submission.id,
+            user_id: session.user.id,
+            storage_path: path,
+            original_name: file.name,
+            mime_type: file.type,
+            size_bytes: file.size
+          }).select("id").single();
+          if (mediaError || !media) throw mediaError || new Error("附件索引保存失败");
+          uploadedMediaIds.push(media.id);
+        }
+        const { error: submitError } = await client.from("submissions").update({
+          status: "submitted",
+          submitted_at: new Date().toISOString()
+        }).eq("id", submission.id);
+        if (submitError) throw submitError;
+        localStorage.removeItem(localDraftKey);
+        resetEditingState(false);
+        setStatus(`投稿 #${submission.id} 已进入审核队列。`, "success");
+        await refreshSession();
+      } catch (error) {
+        let storageCleanupFailed = false;
+        if (uploadedPaths.length) {
+          const { error: cleanupError } = await client.storage.from("submission-media").remove(uploadedPaths);
+          storageCleanupFailed = Boolean(cleanupError);
+          if (!cleanupError && uploadedMediaIds.length) {
+            await client.from("submission_media").delete().in("id", uploadedMediaIds);
+          }
+        }
+        if (createdNew && submission && !storageCleanupFailed) {
+          await client.from("submissions").delete().eq("id", submission.id);
+        }
+        const retained = submission && (!createdNew || storageCleanupFailed)
+          ? ` 云端草稿 #${submission.id} 已保留，可从“我的投稿”继续处理。`
+          : "";
+        setStatus(`投稿未进入审核队列：${error instanceof Error ? error.message : "未知错误"}.${retained}`, "error");
+      } finally {
+        if (cloudButton) cloudButton.disabled = false;
+      }
+    });
+
+    restoreDraft();
+    if (client) {
+      client.auth.onAuthStateChange(() => window.setTimeout(() => void refreshSession(), 0));
+      void refreshSession();
+    }
+  }
+</script>

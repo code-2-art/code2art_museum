@@ -1,0 +1,14 @@
+---
+import CuratorQueue from "@/components/CuratorQueue.astro";
+import SiteLayout from "@/layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="策展审核 | code2art museum" description="code2art museum 投稿审核队列。">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div><p class="eyebrow">Curatorial review</p><h1>策展审核</h1></div>
+      <p>检查投稿来源、授权、人物信息与展示语境。审核动作由数据库事务记录，普通登录用户无法读取队列。</p>
+    </section>
+    <CuratorQueue />
+  </main>
+</SiteLayout>

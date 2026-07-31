@@ -1,6 +1,7 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import { archiveEntrances, exhibits, historyNodes } from "@/data/museum";
+import ArchiveExplorer from "@/components/ArchiveExplorer.astro";
+import { archiveEntrances, historyNodes } from "@/data/museum";
 ---
 
 <SiteLayout title="档案 | code2art museum">
@@ -21,15 +22,16 @@ import { archiveEntrances, exhibits, historyNodes } from "@/data/museum";
         </article>
       ))}
     </section>
-    <section class="content-band">
+    <ArchiveExplorer />
+    <section class="content-band" aria-labelledby="history-list-title">
       <div class="section-title">
-        <p class="eyebrow">Seed records</p>
-        <h2>首批记录</h2>
+        <p class="eyebrow">Chronicle evidence</p>
+        <h2 id="history-list-title">历史节点</h2>
       </div>
       <div class="index-list compact">
-        {[...exhibits.slice(0, 3), ...historyNodes.slice(-2)].map((item) => (
-          <article class="index-row">
-            <p class="row-meta">{"type" in item ? item.type : item.status}</p>
+        {historyNodes.slice().reverse().map((item) => (
+          <article class="index-row" id={item.id}>
+            <p class="row-meta">{item.year} / {item.status} / {item.source}</p>
             <h3>{item.title}</h3>
             <p>{item.description}</p>
           </article>

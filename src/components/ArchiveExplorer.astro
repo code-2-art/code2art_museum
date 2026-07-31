@@ -1,0 +1,103 @@
+---
+import { museumRecords } from "@/data/museum";
+
+const toArchiveHref = (href: string) => {
+  if (href.startsWith("/exhibits/")) return `../${href.slice(1)}index.html`;
+  if (href.startsWith("/members/")) return `../members/index.html${href.split("#")[1] ? `#${href.split("#")[1]}` : ""}`;
+  return href.includes("#") ? `#${href.split("#")[1]}` : "#";
+};
+const records = museumRecords.map((record) => ({ ...record, resolvedHref: toArchiveHref(record.href) }));
+const recordsJson = JSON.stringify(records).replace(/</g, "\\u003c");
+const filters = [
+  ["all", "全部"],
+  ["artwork", "作品"],
+  ["project", "项目"],
+  ["prompt", "Prompt / Skill"],
+  ["profile", "人物"],
+  ["history", "历史"]
+];
+---
+
+<section class="archive-explorer" aria-labelledby="archive-explorer-title" data-archive-explorer>
+  <div class="archive-tools">
+    <div>
+      <p class="eyebrow">Search the collection</p>
+      <h2 id="archive-explorer-title">检索公开档案</h2>
+    </div>
+    <label class="archive-search">
+      <span>搜索</span>
+      <input type="search" placeholder="作品、人物、工具或历史线索" autocomplete="off" data-archive-query />
+    </label>
+  </div>
+  <div class="archive-filters" aria-label="档案类型筛选">
+    {filters.map(([value, label], index) => (
+      <button type="button" data-filter={value} aria-pressed={index === 0 ? "true" : "false"}>{label}</button>
+    ))}
+  </div>
+  <p class="archive-count" aria-live="polite" data-archive-count>共 {records.length} 条公开记录</p>
+  <div class="index-list" data-archive-results>
+    {records.map((record) => (
+      <a class="index-row archive-result" href={record.resolvedHref} data-kind={record.kind} data-type={record.type}>
+        <p class="row-meta">{record.kind} / {record.type} / {record.meta}</p>
+        <h3>{record.title}</h3>
+        <p>{record.description}</p>
+      </a>
+    ))}
+  </div>
+  <p class="archive-empty" hidden data-archive-empty>没有找到对应的公开档案。可以调整关键词，或前往参与页提交新的线索。</p>
+  <script type="application/json" data-archive-records set:html={recordsJson}></script>
+</section>
+
+<script>
+  import { searchMuseum } from "@/lib/museum-search";
+  import type { MuseumRecord } from "@/data/museum";
+
+  type ArchiveRecord = MuseumRecord & { resolvedHref: string };
+  const explorer = document.querySelector<HTMLElement>("[data-archive-explorer]");
+  if (explorer) {
+    const input = explorer.querySelector<HTMLInputElement>("[data-archive-query]");
+    const results = explorer.querySelector<HTMLElement>("[data-archive-results]");
+    const count = explorer.querySelector<HTMLElement>("[data-archive-count]");
+    const empty = explorer.querySelector<HTMLElement>("[data-archive-empty]");
+    const data = explorer.querySelector<HTMLScriptElement>("[data-archive-records]");
+    const buttons = Array.from(explorer.querySelectorAll<HTMLButtonElement>("[data-filter]"));
+    const records = data?.textContent ? (JSON.parse(data.textContent) as ArchiveRecord[]) : [];
+    let activeFilter = "all";
+
+    const matchesFilter = (record: ArchiveRecord) => {
+      if (activeFilter === "all") return true;
+      if (activeFilter === "prompt") return record.type === "prompt" || record.keywords.some((value) => /skill/i.test(value));
+      return record.kind === activeFilter || record.type === activeFilter;
+    };
+    const render = () => {
+      if (!results) return;
+      const query = input?.value.trim() || "";
+      const ranked = query ? searchMuseum(records, query, records.length) as ArchiveRecord[] : records;
+      const visible = ranked.filter(matchesFilter);
+      results.replaceChildren(...visible.map((record) => {
+        const link = document.createElement("a");
+        link.className = "index-row archive-result";
+        link.href = record.resolvedHref;
+        const meta = document.createElement("p");
+        meta.className = "row-meta";
+        meta.textContent = `${record.kind} / ${record.type} / ${record.meta}`;
+        const title = document.createElement("h3");
+        title.textContent = record.title;
+        const description = document.createElement("p");
+        description.textContent = record.description;
+        link.append(meta, title, description);
+        return link;
+      }));
+      if (count) count.textContent = `共 ${visible.length} 条公开记录`;
+      if (empty) empty.hidden = visible.length > 0;
+    };
+
+    input?.addEventListener("input", render);
+    buttons.forEach((button) => button.addEventListener("click", () => {
+      activeFilter = button.dataset.filter || "all";
+      buttons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      render();
+    }));
+  }
+</script>
+

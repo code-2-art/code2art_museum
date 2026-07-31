@@ -10,9 +10,18 @@ const {
   title = "code2art museum",
   description = "实验编程社区的在线数字博物馆、档案馆与研究平台。"
 } = Astro.props;
+const siteRoot = Astro.site ?? new URL("/", Astro.url.origin);
+const canonicalPath = Astro.url.pathname.replace(/^\/+/, "");
+const canonicalUrl = new URL(canonicalPath, siteRoot);
+const socialImageUrl = new URL("assets/code2art-mark.svg", siteRoot);
 
 const currentSegments = Astro.url.pathname.split("/").filter(Boolean);
-const currentDepth = currentSegments.length;
+const isRootOutputFile = currentSegments.length === 1 && currentSegments[0] === "404";
+const currentDepth = isRootOutputFile
+  ? 0
+  : Astro.url.pathname.endsWith("/")
+  ? currentSegments.length
+  : Math.max(0, currentSegments.length - 1);
 const currentPrefix = currentDepth > 0 ? "../".repeat(currentDepth) : "";
 const href = (path: string) => {
   const cleanPath = path.replace(/^\/+|\/+$/g, "");
@@ -51,6 +60,15 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta name="theme-color" content="#f7f3eb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content="code2art museum" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={socialImageUrl} />
     <link rel="icon" href={href("/assets/code2art-mark.svg")} type="image/svg+xml" />
   </head>
   <body>
@@ -59,16 +77,19 @@ const nav = [
         <img src={href("/assets/code2art-mark.svg")} alt="" />
         <span>code2art museum</span>
       </a>
-      <nav class="primary-nav" aria-label="Primary navigation">
+      <button class="nav-menu-button" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="primary-nav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
         {nav.map((item) => (
           "items" in item ? (
             <div class="nav-dropdown">
-              <a class="nav-dropdown-trigger" href={item.items[0].href} aria-haspopup="true">
+              <button class="nav-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false">
                 <span>{item.label}</span>
                 <svg viewBox="0 0 12 12" aria-hidden="true">
                   <path d="M3 4.5 6 7.5 9 4.5" />
                 </svg>
-              </a>
+              </button>
               <div class="nav-dropdown-menu">
                 {item.items.map((child) => (
                   <a href={child.href} target="_blank" rel="noopener noreferrer">
@@ -87,6 +108,41 @@ const nav = [
     <slot />
     <footer class="site-footer">
       <p>Copyright © 实验编程 code2art 2016-2026</p>
+      <div class="footer-links">
+        <a href={href("/privacy/")}>隐私与投稿说明</a>
+        <a href={href("/curator/")}>策展审核</a>
+      </div>
     </footer>
+    <script>
+      const menuButton = document.querySelector<HTMLButtonElement>(".nav-menu-button");
+      const navigation = document.querySelector<HTMLElement>("#primary-nav");
+      const dropdown = document.querySelector<HTMLElement>(".nav-dropdown");
+      const dropdownButton = dropdown?.querySelector<HTMLButtonElement>(".nav-dropdown-trigger");
+
+      const closeNavigation = () => {
+        navigation?.classList.remove("is-open");
+        menuButton?.setAttribute("aria-expanded", "false");
+        menuButton?.setAttribute("aria-label", "打开导航");
+        dropdown?.classList.remove("is-open");
+        dropdownButton?.setAttribute("aria-expanded", "false");
+      };
+
+      menuButton?.addEventListener("click", () => {
+        const open = navigation?.classList.toggle("is-open") ?? false;
+        menuButton.setAttribute("aria-expanded", String(open));
+        menuButton.setAttribute("aria-label", open ? "关闭导航" : "打开导航");
+      });
+      dropdownButton?.addEventListener("click", () => {
+        const open = dropdown?.classList.toggle("is-open") ?? false;
+        dropdownButton.setAttribute("aria-expanded", String(open));
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeNavigation();
+      });
+      document.addEventListener("click", (event) => {
+        if (window.innerWidth > 760 || !(event.target instanceof Node)) return;
+        if (!navigation?.contains(event.target) && !menuButton?.contains(event.target)) closeNavigation();
+      });
+    </script>
   </body>
 </html>

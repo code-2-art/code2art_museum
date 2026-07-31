@@ -14,11 +14,11 @@ import { exhibits } from "@/data/museum";
     </section>
     <section class="index-list">
       {exhibits.map((exhibit) => (
-        <article class="index-row">
+        <a class="index-row" href={`${exhibit.id}/index.html`}>
           <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
           <h3>{exhibit.title}</h3>
           <p>{exhibit.description}</p>
-        </article>
+        </a>
       ))}
     </section>
   </main>

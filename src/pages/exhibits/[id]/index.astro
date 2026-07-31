@@ -1,0 +1,60 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { exhibits } from "@/data/museum";
+
+export function getStaticPaths() {
+  return exhibits.map((exhibit) => ({
+    params: { id: exhibit.id },
+    props: { exhibit }
+  }));
+}
+
+const { exhibit } = Astro.props;
+const archiveHref = "../../archive/index.html";
+const githubRoot = "https://github.com/code-2-art/code2art_museum/blob/main/";
+const mediaHref = (media: string) => {
+  if (/^https?:\/\//i.test(media)) return media;
+  if (media.startsWith("docs/")) return `../../${media.slice("docs/".length)}`;
+  return `${githubRoot}${media.replace(/^\.\.\/\.\.\//, "")}`;
+};
+---
+
+<SiteLayout title={`${exhibit.title} | code2art museum`} description={exhibit.description}>
+  <main class="page-shell record-page">
+    <a class="back-link" href={archiveHref}>← 返回档案</a>
+    <section class="page-heading record-heading">
+      <div>
+        <p class="eyebrow">{exhibit.id} / {exhibit.type}</p>
+        <h1>{exhibit.title}</h1>
+      </div>
+      <p>{exhibit.description}</p>
+    </section>
+    <section class="record-layout">
+      <article class="record-narrative">
+        <p class="row-meta">Process and context</p>
+        <h2>过程与语境</h2>
+        <p>{exhibit.process}</p>
+      </article>
+      <aside class="record-metadata" aria-label="展品元数据">
+        <dl>
+          <div><dt>年份</dt><dd>{exhibit.year}</dd></div>
+          <div><dt>作者</dt><dd>{exhibit.author}</dd></div>
+          <div><dt>类型</dt><dd>{exhibit.type}</dd></div>
+          <div><dt>工具</dt><dd>{exhibit.tools.join(" / ")}</dd></div>
+          <div><dt>贡献者</dt><dd>{exhibit.contributors.join(" / ")}</dd></div>
+          <div><dt>许可</dt><dd>{exhibit.license}</dd></div>
+        </dl>
+        {exhibit.repo && <a class="text-action" href={exhibit.repo} target="_blank" rel="noopener noreferrer">查看项目仓库 ↗</a>}
+      </aside>
+    </section>
+    {exhibit.media.length > 0 && (
+      <section class="record-sources" aria-labelledby="record-sources-title">
+        <p class="eyebrow">Sources and media</p>
+        <h2 id="record-sources-title">资料与媒体</h2>
+        <ul>
+          {exhibit.media.map((media) => <li><a href={mediaHref(media)} target="_blank" rel="noopener noreferrer">{media} ↗</a></li>)}
+        </ul>
+      </section>
+    )}
+  </main>
+</SiteLayout>

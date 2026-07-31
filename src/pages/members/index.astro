@@ -14,7 +14,7 @@ import { profiles } from "@/data/museum";
     </section>
     <section class="simple-list" id="members">
       {profiles.map((profile) => (
-        <article class="simple-card">
+        <article class="simple-card" id={profile.id}>
           <p class="row-meta">{profile.status}</p>
           <h2>{profile.name}</h2>
           <p>{profile.identity}</p>

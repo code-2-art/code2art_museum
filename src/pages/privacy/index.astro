@@ -1,0 +1,20 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="隐私与投稿说明 | code2art museum" description="code2art museum 投稿数据、附件和审核流程说明。">
+  <main class="page-shell policy-page">
+    <section class="page-heading">
+      <div><p class="eyebrow">Privacy and submissions</p><h1>隐私与投稿说明</h1></div>
+      <p>这份说明适用于网站投稿入口。公开仓库中的既有馆藏继续遵循各条目的来源与许可标记。</p>
+    </section>
+    <section class="policy-content">
+      <article><h2>收集什么</h2><p>投稿表单会保存登录邮箱对应的账号标识、作品或资料描述、来源链接、许可声明、附件以及审核记录。登录邮箱用于确认投稿归属，不作为公开馆藏字段。</p></article>
+      <article><h2>如何使用</h2><p>策展成员仅为核验来源、授权、人物信息、展示语境和联系补充材料而读取投稿。投稿不会自动公开；通过审核后，只有适合作为馆藏的字段和已确认可展示的媒体会被发布。</p></article>
+      <article><h2>附件与访问</h2><p>投稿附件存放在私有存储桶中，只允许投稿者本人和具有策展权限的账号访问。公开网站不包含数据库管理密钥或服务端密钥。</p></article>
+      <article><h2>更正与撤回</h2><p>草稿可由投稿者修改或删除。提交审核后如需更正、撤回或处理公开内容，请通过项目 GitHub Issue 联系维护者，并避免在公开 Issue 中附带敏感个人信息。</p></article>
+      <article><h2>开源边界</h2><p>网站代码、数据库迁移和公开馆藏数据位于开源仓库；私有投稿、登录账号、未发布附件和审核中的材料不进入 Git 仓库。</p></article>
+    </section>
+  </main>
+</SiteLayout>
+
