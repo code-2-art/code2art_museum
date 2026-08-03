@@ -7,6 +7,7 @@ This file records incremental website versions and the user-facing features adde
 ### Added
 
 - Added a DeepSeek V4 Flash enhancement path for Museum Agent through a Supabase Edge Function, while preserving immediate deterministic archive answers as the offline and error fallback.
+- Added exact model-receipt verification: generated answers are accepted and cached only when DeepSeek confirms `deepseek-v4-flash`, and the frontend displays the verified response model.
 - Added evidence-only prompt framing, request validation, exact-origin CORS, publishable-key authorization, per-client throttling, a configurable daily model budget, and a 24-hour server-side answer cache.
 - Turned Museum Agent into a working archive guide with intent-aware local search, route answers, and linked evidence records.
 - Added full archive search and type filters across exhibits, profiles, and history nodes.

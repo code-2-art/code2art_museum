@@ -118,7 +118,13 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
             }))
           }
         });
-        if (error || typeof response?.answer !== "string" || !response.answer.trim()) {
+        if (
+          error
+          || typeof response?.answer !== "string"
+          || !response.answer.trim()
+          || response.model !== "deepseek-v4-flash"
+          || response.model_verified !== true
+        ) {
           throw new Error("generated_guide_unavailable");
         }
         if (sequence !== requestSequence) return;
@@ -127,7 +133,7 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
         if (answerLabel) answerLabel.textContent = "DeepSeek guide";
         if (status) {
           const cacheNote = response.cached ? " / 缓存" : "";
-          status.textContent = `DeepSeek V4 Flash / 依据 ${results.length} 条公开档案${cacheNote}`;
+          status.textContent = `模型已核验：${response.model} / 依据 ${results.length} 条公开档案${cacheNote}`;
         }
       } catch {
         if (sequence === requestSequence && status) {

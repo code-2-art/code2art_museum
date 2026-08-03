@@ -3,12 +3,13 @@ import { createClient } from "npm:@supabase/supabase-js@2.110.8";
 import {
   buildDeepSeekMessages,
   constantTimeEqual,
+  isExpectedModel,
   parseAgentRequest,
   type AgentRequest
 } from "../_shared/museum-agent-policy.ts";
 
 const MODEL = "deepseek-v4-flash";
-const PROMPT_VERSION = 1;
+const PROMPT_VERSION = 2;
 const MAX_BODY_BYTES = 16_384;
 const REQUEST_LIMIT = 8;
 const REQUEST_WINDOW_SECONDS = 60;
@@ -183,8 +184,13 @@ Deno.serve(async (request: Request) => {
       .gt("expires_at", now.toISOString())
       .maybeSingle();
 
-    if (cached?.answer) {
-      return jsonResponse({ ...cached, cached: true }, 200, origin);
+    if (cached?.answer && cached.model === MODEL) {
+      return jsonResponse({
+        ...cached,
+        requested_model: MODEL,
+        model_verified: true,
+        cached: true
+      }, 200, origin);
     }
 
     const deepSeekKey = Deno.env.get("DEEPSEEK_API_KEY")?.trim();
@@ -232,9 +238,25 @@ Deno.serve(async (request: Request) => {
     }
 
     const completion = await upstream.json() as {
+      model?: unknown;
       choices?: Array<{ message?: { content?: unknown } }>;
       usage?: Record<string, unknown>;
     };
+    if (!isExpectedModel(completion.model, MODEL)) {
+      const receivedModel = typeof completion.model === "string"
+        ? completion.model.slice(0, 80)
+        : "missing";
+      console.error("museum-agent model receipt mismatch", {
+        expected: MODEL,
+        received: receivedModel
+      });
+      return fallbackResponse("model_mismatch", origin, {
+        requested_model: MODEL,
+        received_model: receivedModel
+      });
+    }
+
+    const actualModel = completion.model;
     const answer = typeof completion.choices?.[0]?.message?.content === "string"
       ? completion.choices[0].message.content.trim()
       : "";
@@ -253,14 +275,21 @@ Deno.serve(async (request: Request) => {
     const { error: cacheError } = await admin.from("agent_response_cache").upsert({
       cache_key: cacheKey,
       answer,
-      model: MODEL,
+      model: actualModel,
       usage,
       created_at: now.toISOString(),
       expires_at: expiresAt
     });
     if (cacheError) console.error("museum-agent cache write failed", { code: cacheError.code });
 
-    return jsonResponse({ answer, model: MODEL, usage, cached: false }, 200, origin);
+    return jsonResponse({
+      answer,
+      model: actualModel,
+      requested_model: MODEL,
+      model_verified: true,
+      usage,
+      cached: false
+    }, 200, origin);
   } catch (error) {
     console.error("museum-agent request failed", {
       type: error instanceof Error ? error.name : "unknown"

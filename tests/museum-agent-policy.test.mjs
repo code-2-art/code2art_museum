@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildDeepSeekMessages,
   constantTimeEqual,
+  isExpectedModel,
   parseAgentRequest
 } from "../supabase/functions/_shared/museum-agent-policy.ts";
 
@@ -71,3 +72,8 @@ test("compares API keys without an early character mismatch", () => {
   assert.equal(constantTimeEqual("short", "longer"), false);
 });
 
+test("accepts only an exact model receipt", () => {
+  assert.equal(isExpectedModel("deepseek-v4-flash", "deepseek-v4-flash"), true);
+  assert.equal(isExpectedModel("deepseek-v4-pro", "deepseek-v4-flash"), false);
+  assert.equal(isExpectedModel(undefined, "deepseek-v4-flash"), false);
+});

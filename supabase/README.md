@@ -25,6 +25,10 @@
 `deepseek-v4-flash`，返回一段以证据为边界的简短导览。函数或模型不可用时，
 本地档案答案会继续显示。
 
+函数会核对 DeepSeek 响应中的 `model` 回执；只有它与请求的
+`deepseek-v4-flash` 完全一致时，回答才会被缓存并返回给前端。前端展示的是
+该已核验回执，而不是固定模型文案。
+
 在 Supabase Dashboard 的 **Edge Functions > Secrets** 中添加
 `DEEPSEEK_API_KEY`。这是仅供服务端使用的密钥：不要将它放进 `.env`、
 GitHub Actions、Astro `PUBLIC_` 变量或客户端代码。添加密钥后不需要重新部署
@@ -92,6 +96,11 @@ only the visitor's question and the top four public evidence records to the
 `museum-agent` Edge Function. The function calls `deepseek-v4-flash` in
 non-thinking mode and returns a short evidence-bounded guide. If the function or
 model is unavailable, the local archive answer remains visible.
+
+The function verifies the `model` receipt in DeepSeek's response. An answer is
+cached and returned only when it exactly matches the requested
+`deepseek-v4-flash`; the frontend displays that verified receipt instead of a
+hard-coded model label.
 
 Add `DEEPSEEK_API_KEY` under **Edge Functions > Secrets** in the Supabase
 Dashboard. This is a server-only secret: do not put it in `.env`, GitHub Actions,

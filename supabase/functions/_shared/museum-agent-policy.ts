@@ -90,3 +90,6 @@ export function constantTimeEqual(left: string, right: string) {
   return mismatch === 0;
 }
 
+export function isExpectedModel(received: unknown, expected: string): received is string {
+  return typeof received === "string" && received === expected;
+}

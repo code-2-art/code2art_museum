@@ -30,7 +30,8 @@ Key 后无需重新构建静态网站。不要把该 Key 写入仓库 `.env`、G
 代码。
 
 设置密钥后，在首页向 Agent 提问，确认状态从 `DeepSeek 正在...` 变为
-`DeepSeek V4 Flash`。回答必须以右侧展示的证据链接为依据。密钥缺失、请求
+`模型已核验：deepseek-v4-flash`。这表示服务端请求模型与 DeepSeek 响应中的
+实际模型回执一致。回答必须以右侧展示的证据链接为依据。密钥缺失、请求
 被限流或 DeepSeek 不可用时，页面应保留确定性的本地档案答案。
 
 ## Supabase 认证 URL
@@ -115,7 +116,8 @@ or rotating the DeepSeek key does not require rebuilding the static site. Do not
 add this key to the repository `.env`, GitHub, or frontend code.
 
 After setting the secret, ask the homepage Agent a question and confirm its
-status changes from `DeepSeek 正在...` to `DeepSeek V4 Flash`. The response must
+status changes from `DeepSeek 正在...` to `模型已核验：deepseek-v4-flash`.
+This means the requested model matches the model receipt returned by DeepSeek. The response must
 remain grounded in the evidence links displayed beside it. If the secret is
 missing, the request is rate-limited, or DeepSeek is unavailable, the page keeps
 the deterministic local archive answer.
