@@ -1,8 +1,9 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import { demoAccounts, demoSubmissions } from "@/data/museum";
+import { demoAccounts, demoExhibitions, demoSubmissions } from "@/data/museum";
 
 const ownerById = new Map(demoAccounts.map((account) => [account.id, account]));
+const exhibitionById = new Map(demoExhibitions.map((exhibition) => [exhibition.id, exhibition]));
 const published = demoSubmissions.filter((work) => ["approved", "published"].includes(work.status));
 ---
 
@@ -35,6 +36,10 @@ const published = demoSubmissions.filter((work) => ["approved", "published"].inc
               <dl>
                 <div><dt>作者</dt><dd><a href={`../members/index.html#${owner?.slug}`}>{owner?.name}</a></dd></div>
                 <div><dt>工具</dt><dd>{work.tools.join(" · ")}</dd></div>
+                <div><dt>展览</dt><dd>{work.exhibitionIds.map((id) => {
+                  const exhibition = exhibitionById.get(id);
+                  return exhibition && <a href={`../exhibitions/index.html#${exhibition.id}`}>{exhibition.title}</a>;
+                })}</dd></div>
               </dl>
             </div>
           </article>

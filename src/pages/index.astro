@@ -1,14 +1,15 @@
 ---
 import AgentGuide from "@/components/AgentGuide.astro";
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import { archiveEntrances, buildProgress, exhibits, historyNodes, researchDirections } from "@/data/museum";
+import { archiveEntrances, buildProgress, demoExhibitions, exhibits, historyNodes, researchDirections } from "@/data/museum";
 
 const href = (path: string) => {
   const cleanPath = path.replace(/^\/+|\/+$/g, "");
   const isFile = /\.[a-z0-9]+$/i.test(cleanPath);
   return cleanPath ? (isFile ? cleanPath : `${cleanPath}/index.html`) : "index.html";
 };
-const currentExhibitions = exhibits.slice(0, 3);
+const currentExhibitions = demoExhibitions.filter((exhibition) => exhibition.status === "open");
+const featuredExhibits = exhibits.slice(0, 3);
 const visibleHistory = historyNodes.slice(-3).reverse();
 ---
 
@@ -32,11 +33,11 @@ const visibleHistory = historyNodes.slice(-3).reverse();
       <div class="preview-rail" aria-label="Homepage section preview">
         <a href={href("/exhibitions/")}>
           <span>当前展览</span>
-          <strong>最小可见博物馆</strong>
+          <strong>{currentExhibitions.length} 个开放展览</strong>
         </a>
-        <a href={href("/archive/")}>
-          <span>档案入口</span>
-          <strong>作品 / 项目 / Prompt / Skill</strong>
+        <a href={href("/exhibits/")}>
+          <span>精选馆藏</span>
+          <strong>作品 / 项目 / 方法 / 历史</strong>
         </a>
         <a href={href("/progress/")}>
           <span>建设进程</span>
@@ -49,16 +50,35 @@ const visibleHistory = historyNodes.slice(-3).reverse();
       <div class="section-title">
         <p class="eyebrow">Current exhibition</p>
         <h2 id="exhibitions-title">当前展览</h2>
+        <p>只展示状态为开放中的展览；每个展览组织多件作品，并连接作者与相关档案。</p>
       </div>
       <div class="index-list">
-        {currentExhibitions.map((exhibit) => (
-          <a class="index-row" id={exhibit.id} href={`exhibits/${exhibit.id}/index.html`}>
+        {currentExhibitions.map((exhibition) => (
+          <a class="index-row" id={exhibition.id} href={`exhibitions/index.html#${exhibition.id}`}>
+            <p class="row-meta">OPEN / {exhibition.startDate} / {exhibition.submissionIds.length} 件作品</p>
+            <h3>{exhibition.title}</h3>
+            <p>{exhibition.description}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="content-band" id="collection" aria-labelledby="collection-title">
+      <div class="section-title">
+        <p class="eyebrow">Featured collection</p>
+        <h2 id="collection-title">精选馆藏</h2>
+        <p>馆藏是可独立引用的作品、项目、方法或历史条目；它们可以被一个或多个展览重新组织。</p>
+      </div>
+      <div class="index-list">
+        {featuredExhibits.map((exhibit) => (
+          <a class="index-row" href={`exhibits/${exhibit.id}/index.html`}>
             <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
             <h3>{exhibit.title}</h3>
             <p>{exhibit.description}</p>
           </a>
         ))}
       </div>
+      <a class="text-action section-action" href="exhibits/index.html">浏览全部馆藏 →</a>
     </section>
 
     <section class="content-band two-column" id="archive" aria-labelledby="archive-title">

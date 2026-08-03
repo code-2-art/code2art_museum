@@ -4,6 +4,8 @@ import { demoAccounts, demoExhibitions, demoSubmissions, exhibits } from "@/data
 
 const workById = new Map(demoSubmissions.map((work) => [work.id, work]));
 const accountById = new Map(demoAccounts.map((account) => [account.id, account]));
+const statusLabels = { open: "开放中", planning: "筹备中", archived: "已归档" } as const;
+const openExhibitions = demoExhibitions.filter((exhibition) => exhibition.status === "open");
 ---
 
 <SiteLayout title="展览 | code2art museum">
@@ -13,13 +15,13 @@ const accountById = new Map(demoAccounts.map((account) => [account.id, account])
         <p class="eyebrow">Exhibitions</p>
         <h1>展览</h1>
       </div>
-      <p>当前展览以“最小可见博物馆”为起点，把历史、项目、作品和 AI 协作过程放在同一条导览路线里。</p>
+      <p>展览是策展容器：把多件作品、作者和档案组织成一条导览路线。当前共有 {openExhibitions.length} 个开放展览。</p>
     </section>
     <section class="content-band exhibition-program" aria-labelledby="demo-exhibitions-title">
       <div class="section-title">
-        <p class="eyebrow">Development programme</p>
-        <h2 id="demo-exhibitions-title">五个测试展览</h2>
-        <p>这组策展样本验证作品分组、作者关联和 Agent 的展览路线；内容不作为正式策展结论。</p>
+        <p class="eyebrow">Exhibition programme</p>
+        <h2 id="demo-exhibitions-title">展览计划</h2>
+        <p>五个开发样本覆盖开放、筹备与归档状态，用来验证作品分组、作者关联和 Agent 导览；不作为正式策展结论。</p>
       </div>
       <div class="exhibition-list">
         {demoExhibitions.map((exhibition, index) => (
@@ -27,7 +29,7 @@ const accountById = new Map(demoAccounts.map((account) => [account.id, account])
             <header>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <div>
-                <p class="row-meta">{exhibition.status} / {exhibition.startDate}</p>
+                <p class="row-meta">{statusLabels[exhibition.status]} / {exhibition.startDate} / {exhibition.submissionIds.length} 件作品</p>
                 <h2>{exhibition.title}</h2>
                 <p>{exhibition.subtitle}</p>
               </div>
@@ -44,14 +46,22 @@ const accountById = new Map(demoAccounts.map((account) => [account.id, account])
         ))}
       </div>
     </section>
-    <section class="index-list">
-      {exhibits.map((exhibit) => (
-        <a class="index-row" href={`../exhibits/${exhibit.id}/index.html`}>
-          <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
-          <h3>{exhibit.title}</h3>
-          <p>{exhibit.description}</p>
-        </a>
-      ))}
+    <section class="content-band collection-band" aria-labelledby="collection-heading">
+      <div class="section-title">
+        <p class="eyebrow">Collection</p>
+        <h2 id="collection-heading">精选馆藏</h2>
+        <p>以下条目是可被展览引用的独立馆藏，不等同于展览本身。</p>
+      </div>
+      <div class="index-list">
+        {exhibits.map((exhibit) => (
+          <a class="index-row" href={`../exhibits/${exhibit.id}/index.html`}>
+            <p class="row-meta">{exhibit.id} / {exhibit.type} / {exhibit.year}</p>
+            <h3>{exhibit.title}</h3>
+            <p>{exhibit.description}</p>
+          </a>
+        ))}
+      </div>
+      <a class="text-action section-action" href="../exhibits/index.html">进入完整馆藏 →</a>
     </section>
   </main>
 </SiteLayout>

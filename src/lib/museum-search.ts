@@ -2,6 +2,13 @@ import type { MuseumRecord } from "@/data/museum";
 
 export type SearchResult = MuseumRecord & { score: number };
 
+export type ExhibitionScheduleResult = {
+  dateLabel: "今天" | "明天" | "后天";
+  targetDate: string;
+  hasScheduleData: boolean;
+  openExhibitions: SearchResult[];
+};
+
 const intentTerms: Array<{ test: RegExp; terms: string[] }> = [
   { test: /新手|入门|第一次|路线/, terms: ["建馆", "hudoit", "历史", "prompt"] },
   { test: /生成|p5|视觉|艺术/, terms: ["生成", "p5.js", "artwork", "creative coding"] },
@@ -11,6 +18,54 @@ const intentTerms: Array<{ test: RegExp; terms: string[] }> = [
 ];
 
 const normalize = (value: string) => value.toLocaleLowerCase("zh-CN").replace(/\s+/g, " ").trim();
+
+const toLocalIsoDate = (date: Date) => [
+  date.getFullYear(),
+  String(date.getMonth() + 1).padStart(2, "0"),
+  String(date.getDate()).padStart(2, "0")
+].join("-");
+
+export function resolveExhibitionSchedule(
+  records: MuseumRecord[],
+  rawQuery: string,
+  now = new Date()
+): ExhibitionScheduleResult | null {
+  const query = normalize(rawQuery);
+  if (!/展览|展出|开馆|开放/.test(query)) return null;
+
+  const relativeDate = [
+    { test: /后天/, label: "后天" as const, offset: 2 },
+    { test: /明天/, label: "明天" as const, offset: 1 },
+    { test: /今天|今日/, label: "今天" as const, offset: 0 }
+  ].find((candidate) => candidate.test.test(query));
+  if (!relativeDate) return null;
+
+  const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + relativeDate.offset);
+  const exhibitions = records.filter((record) => record.kind === "exhibition" && record.schedule);
+  const openExhibitions = exhibitions
+    .filter((record) => record.schedule?.status === "open" && record.schedule.startDate <= toLocalIsoDate(target))
+    .map((record) => ({ ...record, score: 20 }));
+
+  return {
+    dateLabel: relativeDate.label,
+    targetDate: toLocalIsoDate(target),
+    hasScheduleData: exhibitions.length > 0,
+    openExhibitions
+  };
+}
+
+export function buildExhibitionScheduleAnswer(schedule: ExhibitionScheduleResult) {
+  const readableDate = schedule.targetDate.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$1 年 $2 月 $3 日");
+  if (!schedule.hasScheduleData) {
+    return `${schedule.dateLabel}是 ${readableDate}。当前公开档案没有可核对的展览日程，暂时无法回答当天有什么展览。`;
+  }
+
+  const names = schedule.openExhibitions.map((record) => `《${record.title}》`);
+  const openSummary = names.length
+    ? `目前状态标记为“开放”的展览有 ${names.join("、")}。`
+    : "目前没有状态标记为“开放”的展览。";
+  return `${schedule.dateLabel}是 ${readableDate}。${openSummary}当前档案没有逐日开放时段或闭展日期，因此还不能据此确认当天的实际开放安排；请进入“展览”页核对最新日程。`;
+}
 
 export function searchMuseum(records: MuseumRecord[], rawQuery: string, limit = 6): SearchResult[] {
   const query = normalize(rawQuery);

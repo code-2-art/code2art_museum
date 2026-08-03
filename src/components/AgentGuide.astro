@@ -30,6 +30,26 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
     <div class="question-chips" aria-label="Suggested routes">
       {agentQuestions.map((question) => <button type="button">{question}</button>)}
     </div>
+    <div class="agent-progress" data-agent-progress data-stage="idle" role="status" aria-live="polite" hidden>
+      <div class="agent-progress-copy">
+        <strong data-agent-progress-title>准备处理问题</strong>
+        <span data-agent-progress-detail>Agent 会先检索公开馆藏，再决定是否请求生成模型。</span>
+      </div>
+      <ol aria-label="Agent 处理步骤">
+        <li data-agent-step="search" data-state="pending">
+          <span class="agent-step-dot">1</span>
+          <span><strong>检索馆藏</strong><em>寻找相关公开记录</em></span>
+        </li>
+        <li data-agent-step="evidence" data-state="pending">
+          <span class="agent-step-dot">2</span>
+          <span><strong>组织证据</strong><em>选择最多四条依据</em></span>
+        </li>
+        <li data-agent-step="model" data-state="pending">
+          <span class="agent-step-dot">3</span>
+          <span><strong>请求模型</strong><em>等待并核验服务端回执</em></span>
+        </li>
+      </ol>
+    </div>
     <div class="agent-answer" aria-live="polite" aria-busy="false">
       <p class="answer-label" data-agent-label>Guide route</p>
       <p data-agent-answer>这条入门路线从《code2art museum 建馆宣言》，再到《HUDOIT 论坛活跃》，再到《Prompt 即展品》展开，依次建立社区背景、作品语境和 AI 协作方法。每一步都链接到当前公开档案。</p>
@@ -53,7 +73,13 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
 </section>
 
 <script>
-  import { buildGuideAnswer, searchMuseum } from "@/lib/museum-search";
+  import {
+    buildExhibitionScheduleAnswer,
+    buildGuideAnswer,
+    resolveExhibitionSchedule,
+    searchMuseum
+  } from "@/lib/museum-search";
+  import { describeAgentFailure, getInvokeFailureReason } from "@/lib/museum-agent-errors";
   import { getSupabaseClient } from "@/lib/supabase";
   import type { MuseumRecord } from "@/data/museum";
 
@@ -64,6 +90,10 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
     const answer = agent.querySelector<HTMLElement>("[data-agent-answer]");
     const answerLabel = agent.querySelector<HTMLElement>("[data-agent-label]");
     const status = agent.querySelector<HTMLElement>("[data-agent-model-status]");
+    const progress = agent.querySelector<HTMLElement>("[data-agent-progress]");
+    const progressTitle = agent.querySelector<HTMLElement>("[data-agent-progress-title]");
+    const progressDetail = agent.querySelector<HTMLElement>("[data-agent-progress-detail]");
+    const progressSteps = Array.from(agent.querySelectorAll<HTMLElement>("[data-agent-step]"));
     const answerPanel = agent.querySelector<HTMLElement>(".agent-answer");
     const evidence = agent.querySelector<HTMLElement>("[data-agent-evidence]");
     const data = agent.querySelector<HTMLScriptElement>("[data-museum-records]");
@@ -71,6 +101,26 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
     const records = data?.textContent ? (JSON.parse(data.textContent) as MuseumRecord[]) : [];
     const supabase = getSupabaseClient();
     let requestSequence = 0;
+
+    type ProgressStage = "searching" | "evidence" | "model" | "complete" | "local" | "fallback";
+    const progressStates: Record<ProgressStage, Array<"active" | "done" | "pending" | "skipped" | "error">> = {
+      searching: ["active", "pending", "pending"],
+      evidence: ["done", "active", "pending"],
+      model: ["done", "done", "active"],
+      complete: ["done", "done", "done"],
+      local: ["done", "done", "skipped"],
+      fallback: ["done", "done", "error"]
+    };
+    const setProgress = (stage: ProgressStage, title: string, detail: string, noEvidence = false) => {
+      if (!progress) return;
+      progress.hidden = false;
+      progress.dataset.stage = stage;
+      if (progressTitle) progressTitle.textContent = title;
+      if (progressDetail) progressDetail.textContent = detail;
+      const states = [...progressStates[stage]];
+      if (stage === "local" && noEvidence) states[1] = "skipped";
+      progressSteps.forEach((step, index) => { step.dataset.state = states[index]; });
+    };
 
     const toHref = (record: MuseumRecord) => {
       if (record.kind === "exhibit") return `exhibits/${record.id}/index.html`;
@@ -82,9 +132,27 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
     const render = async (query: string) => {
       if (!answer || !evidence) return;
       const sequence = ++requestSequence;
-      const results = searchMuseum(records, query, 4);
-      answer.textContent = buildGuideAnswer(query, results);
-      if (answerLabel) answerLabel.textContent = "Guide route";
+      setProgress("searching", "正在检索公开馆藏", "先从作品、展览、人物与 Archive 中寻找和问题相关的记录。");
+      if (status) status.textContent = "步骤 1/3 · 正在检索公开馆藏";
+      if (answerPanel) answerPanel.setAttribute("aria-busy", "true");
+      if (submit) submit.disabled = true;
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+      const exhibitionSchedule = resolveExhibitionSchedule(records, query);
+      const results = exhibitionSchedule?.openExhibitions ?? searchMuseum(records, query, 4);
+      setProgress(
+        "evidence",
+        exhibitionSchedule?.hasScheduleData
+          ? `已核对${exhibitionSchedule.dateLabel}的展览记录`
+          : results.length ? `找到 ${results.length} 条相关证据` : "没有找到可引用的公开证据",
+        exhibitionSchedule?.hasScheduleData
+          ? "正在依据公开状态整理展览日程；不会让生成模型猜测开放时间。"
+          : results.length ? "正在组织证据并准备本地导览答案。" : "这次不会请求生成模型，以免在没有依据时编造答案。"
+      );
+      answer.textContent = exhibitionSchedule
+        ? buildExhibitionScheduleAnswer(exhibitionSchedule)
+        : buildGuideAnswer(query, results);
+      if (answerLabel) answerLabel.textContent = exhibitionSchedule ? "Exhibition schedule" : "Guide route";
       evidence.replaceChildren(...results.map((record) => {
         const link = document.createElement("a");
         link.className = "catalog-strip";
@@ -98,15 +166,38 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
         link.append(kind, title, type);
         return link;
       }));
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 
-      if (!supabase || query.trim().length < 2 || results.length === 0) {
-        if (status) status.textContent = "本地档案导览";
+      if (exhibitionSchedule?.hasScheduleData) {
+        setProgress(
+          "local",
+          `已核对${exhibitionSchedule.dateLabel}展览日程`,
+          "日程事实已由公开展览记录直接回答；未调用生成模型。"
+        );
+        if (status) status.textContent = `本地展览日程 · ${exhibitionSchedule.targetDate} · 未调用模型`;
+        if (answerPanel) answerPanel.setAttribute("aria-busy", "false");
+        if (submit) submit.disabled = false;
         return;
       }
 
+      if (!supabase || query.trim().length < 2 || results.length === 0) {
+        const noEvidence = results.length === 0;
+        setProgress(
+          "local",
+          noEvidence ? "已返回本地无证据说明" : "已完成本地档案导览",
+          noEvidence ? "未调用生成模型；可以换一个问题或补充馆藏线索。" : "当前未连接生成式导览服务，因此没有调用模型。",
+          noEvidence
+        );
+        if (status) status.textContent = noEvidence ? "本次未调用模型 · 公开证据不足" : "本地档案导览 · 未调用模型";
+        if (answerPanel) answerPanel.setAttribute("aria-busy", "false");
+        if (submit) submit.disabled = false;
+        return;
+      }
+
+      setProgress("model", "正在请求 DeepSeek 生成导览", `已向服务端发送 ${results.length} 条公开证据；正在等待模型响应并核验实际模型回执。`);
       if (status) status.textContent = `DeepSeek 正在依据 ${results.length} 条公开档案生成导览...`;
-      if (answerPanel) answerPanel.setAttribute("aria-busy", "true");
-      if (submit) submit.disabled = true;
+
+      let failure = describeAgentFailure("agent_unavailable");
 
       try {
         const { data: response, error } = await supabase.functions.invoke("museum-agent", {
@@ -122,26 +213,42 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
             }))
           }
         });
+        if (error) {
+          failure = describeAgentFailure(await getInvokeFailureReason(error));
+          throw error;
+        }
+        if (response?.fallback === true) {
+          failure = describeAgentFailure(response.reason);
+          throw new Error(typeof response.reason === "string" ? response.reason : "agent_unavailable");
+        }
         if (
-          error
-          || typeof response?.answer !== "string"
+          typeof response?.answer !== "string"
           || !response.answer.trim()
-          || response.model !== "deepseek-v4-flash"
-          || response.model_verified !== true
         ) {
-          throw new Error("generated_guide_unavailable");
+          failure = describeAgentFailure("invalid_model_response");
+          throw new Error("invalid_model_response");
+        }
+        if (response.model !== "deepseek-v4-flash" || response.model_verified !== true) {
+          failure = describeAgentFailure("model_mismatch");
+          throw new Error("model_mismatch");
         }
         if (sequence !== requestSequence) return;
 
         answer.textContent = response.answer.trim();
         if (answerLabel) answerLabel.textContent = "DeepSeek guide";
+        setProgress(
+          "complete",
+          "生成式导览已完成",
+          `服务端已核验实际模型：${response.model}${response.cached ? "；本次使用已核验缓存。" : "；本次为实时生成。"}`
+        );
         if (status) {
           const cacheNote = response.cached ? " / 缓存" : "";
           status.textContent = `模型已核验：${response.model} / 依据 ${results.length} 条公开档案${cacheNote}`;
         }
       } catch {
-        if (sequence === requestSequence && status) {
-          status.textContent = "生成式导览暂不可用，已返回本地档案结果";
+        if (sequence === requestSequence) {
+          setProgress("fallback", failure.title, failure.detail);
+          if (status) status.textContent = `${failure.status} · 已保留本地档案结果`;
         }
       } finally {
         if (sequence === requestSequence) {

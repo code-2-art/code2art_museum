@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildGuideAnswer, searchMuseum } from "../src/lib/museum-search.ts";
+import {
+  buildExhibitionScheduleAnswer,
+  buildGuideAnswer,
+  resolveExhibitionSchedule,
+  searchMuseum
+} from "../src/lib/museum-search.ts";
 
 const records = [
   {
@@ -88,4 +93,38 @@ test("answers exhibition relationship questions with the exhibition evidence", (
   const answer = buildGuideAnswer("这件作品在哪个展览？", [records[0], exhibition]);
   assert.match(answer, /展览《开源之后》/);
   assert.match(answer, /测试数据关系/);
+});
+
+test("answers relative exhibition schedule questions from structured local data", () => {
+  const exhibitions = [
+    {
+      ...records[0],
+      id: "exhibition-nature",
+      kind: "exhibition",
+      type: "exhibition",
+      title: "可计算的自然",
+      schedule: { status: "open", startDate: "2026-01-15" }
+    },
+    {
+      ...records[1],
+      id: "exhibition-future",
+      kind: "exhibition",
+      type: "exhibition",
+      title: "未来展览",
+      schedule: { status: "planning", startDate: "2026-09-15" }
+    }
+  ];
+  const schedule = resolveExhibitionSchedule(exhibitions, "明天有什么展览", new Date(2026, 7, 3, 12));
+
+  assert.ok(schedule);
+  assert.equal(schedule.targetDate, "2026-08-04");
+  assert.deepEqual(schedule.openExhibitions.map((record) => record.id), ["exhibition-nature"]);
+  const answer = buildExhibitionScheduleAnswer(schedule);
+  assert.match(answer, /明天是 2026 年 08 月 04 日/);
+  assert.match(answer, /《可计算的自然》/);
+  assert.match(answer, /没有逐日开放时段或闭展日期/);
+});
+
+test("does not treat ordinary exhibition questions as date schedule queries", () => {
+  assert.equal(resolveExhibitionSchedule(records, "这件作品在哪个展览？", new Date(2026, 7, 3, 12)), null);
 });

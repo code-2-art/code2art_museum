@@ -3,14 +3,14 @@ import SiteLayout from "@/layouts/SiteLayout.astro";
 import { exhibits } from "@/data/museum";
 ---
 
-<SiteLayout title="展品 | code2art museum">
+<SiteLayout title="馆藏 | code2art museum">
   <main class="page-shell">
     <section class="page-heading">
       <div>
-        <p class="eyebrow">Legacy exhibits route</p>
-        <h1>展品</h1>
+        <p class="eyebrow">Collection</p>
+        <h1>馆藏</h1>
       </div>
-      <p>这里保留旧版展品入口，同时内容结构逐步迁移到展览与档案系统。</p>
+      <p>馆藏保存可独立引用的作品、项目、Prompt、方法和历史条目。展览会从馆藏与投稿作品中组织策展关系，但两者不是同一层级。</p>
     </section>
     <section class="index-list">
       {exhibits.map((exhibit) => (

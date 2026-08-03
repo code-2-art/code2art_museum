@@ -23,6 +23,7 @@ const currentDepth = isRootOutputFile
   ? currentSegments.length
   : Math.max(0, currentSegments.length - 1);
 const currentPrefix = currentDepth > 0 ? "../".repeat(currentDepth) : "";
+const activeSection = currentSegments[0] || "home";
 const href = (path: string) => {
   const cleanPath = path.replace(/^\/+|\/+$/g, "");
   const isFile = /\.[a-z0-9]+$/i.test(cleanPath);
@@ -30,11 +31,12 @@ const href = (path: string) => {
 };
 
 const nav = [
-  { label: "展览", href: href("/exhibitions/") },
-  { label: "作品", href: href("/works/") },
-  { label: "档案", href: href("/archive/") },
-  { label: "研究", href: href("/research/") },
-  { label: "成员", href: href("/members/") },
+  { label: "展览", href: href("/exhibitions/"), section: "exhibitions" },
+  { label: "作品", href: href("/works/"), section: "works" },
+  { label: "馆藏", href: href("/exhibits/"), section: "exhibits" },
+  { label: "档案", href: href("/archive/"), section: "archive" },
+  { label: "研究", href: href("/research/"), section: "research" },
+  { label: "成员", href: href("/members/"), section: "members" },
   {
     label: "3D 展馆",
     items: [
@@ -101,7 +103,7 @@ const nav = [
               </div>
             </div>
           ) : (
-            <a href={item.href}>{item.label}</a>
+            <a href={item.href} aria-current={activeSection === item.section ? "page" : undefined}>{item.label}</a>
           )
         ))}
       </nav>
@@ -110,6 +112,9 @@ const nav = [
     <footer class="site-footer">
       <p>Copyright © 实验编程 code2art 2016-2026</p>
       <div class="footer-links">
+        <a href={href("/exhibitions/")}>展览</a>
+        <a href={href("/works/")}>作品</a>
+        <a href={href("/exhibits/")}>馆藏</a>
         <a href={href("/privacy/")}>隐私与投稿说明</a>
         <a href={href("/curator/")}>策展审核</a>
       </div>

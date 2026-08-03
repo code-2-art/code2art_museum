@@ -28,6 +28,10 @@ export type MuseumRecord = {
   meta: string;
   keywords: string[];
   href: string;
+  schedule?: {
+    status: "planning" | "open" | "archived";
+    startDate: string;
+  };
 };
 
 const exhibitModules = import.meta.glob("../../content/exhibits/*.json", {
@@ -153,7 +157,11 @@ export const museumRecords: MuseumRecord[] = [
         ...works.flatMap((work) => [work.title, ...work.tools]),
         ...owners.map((account) => account.name)
       ],
-      href: `/exhibitions/#${exhibition.id}`
+      href: `/exhibitions/#${exhibition.id}`,
+      schedule: {
+        status: exhibition.status,
+        startDate: exhibition.startDate
+      }
     };
   }),
   ...demoArchiveRecords.map((record) => ({

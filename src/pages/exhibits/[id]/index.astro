@@ -10,7 +10,8 @@ export function getStaticPaths() {
 }
 
 const { exhibit } = Astro.props;
-const archiveHref = "../../archive/index.html";
+const collectionHref = "../index.html";
+const archiveHref = `../../archive/index.html#${exhibit.id}`;
 const githubRoot = "https://github.com/code-2-art/code2art_museum/blob/main/";
 const mediaHref = (media: string) => {
   if (/^https?:\/\//i.test(media)) return media;
@@ -21,7 +22,10 @@ const mediaHref = (media: string) => {
 
 <SiteLayout title={`${exhibit.title} | code2art museum`} description={exhibit.description}>
   <main class="page-shell record-page">
-    <a class="back-link" href={archiveHref}>← 返回档案</a>
+    <nav class="record-actions" aria-label="馆藏条目导航">
+      <a class="back-link" href={collectionHref}>← 返回馆藏</a>
+      <a class="back-link" href={archiveHref}>在 Archive 中查看</a>
+    </nav>
     <section class="page-heading record-heading">
       <div>
         <p class="eyebrow">{exhibit.id} / {exhibit.type}</p>
