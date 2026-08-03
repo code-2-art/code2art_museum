@@ -1,6 +1,6 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import { profiles } from "@/data/museum";
+import { demoAccounts, demoSubmissions, profiles } from "@/data/museum";
 ---
 
 <SiteLayout title="成员 | code2art museum">
@@ -11,6 +11,27 @@ import { profiles } from "@/data/museum";
         <h1>成员</h1>
       </div>
       <p>成员 Profile 记录身份、工具栈、代表工作和与 code2art museum 的关系。</p>
+    </section>
+    <section class="content-band" aria-labelledby="demo-members-title">
+      <div class="section-title">
+        <p class="eyebrow">Development accounts</p>
+        <h2 id="demo-members-title">十个测试身份</h2>
+        <p>固定身份只用于本地开发，不对应真实用户，也不能用于线上登录。</p>
+      </div>
+      <div class="member-grid">
+        {demoAccounts.map((account) => {
+          const works = demoSubmissions.filter((work) => work.accountId === account.id);
+          return (
+            <article class="member-card" id={account.slug}>
+              <p class="row-meta">DEMO ACCOUNT / {works.length} 件投稿</p>
+              <h2>{account.name}</h2>
+              <strong>{account.identity}</strong>
+              <p>{account.bio}</p>
+              <ul>{works.map((work) => <li><a href={`../works/index.html#${work.id}`}>{work.title}</a></li>)}</ul>
+            </article>
+          );
+        })}
+      </div>
     </section>
     <section class="simple-list" id="members">
       {profiles.map((profile) => (

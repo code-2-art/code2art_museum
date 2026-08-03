@@ -61,3 +61,31 @@ test("returns an honest no-evidence answer", () => {
 test("respects the result limit", () => {
   assert.equal(searchMuseum(records, "AI 历史 生成", 2).length, 2);
 });
+
+test("keeps large archive collections from crowding out other evidence kinds", () => {
+  const crowded = [
+    ...Array.from({ length: 8 }, (_, index) => ({
+      ...records[2],
+      id: `history-${index}`,
+      title: `生成艺术历史 ${index}`
+    })),
+    records[0],
+    records[1]
+  ];
+  const results = searchMuseum(crowded, "生成艺术 prompt", 4);
+  assert.ok(results.some((record) => record.kind === "exhibit"));
+  assert.ok(results.filter((record) => record.kind === "history").length <= 2);
+});
+
+test("answers exhibition relationship questions with the exhibition evidence", () => {
+  const exhibition = {
+    ...records[1],
+    id: "exhibition-open-source",
+    kind: "exhibition",
+    type: "exhibition",
+    title: "开源之后"
+  };
+  const answer = buildGuideAnswer("这件作品在哪个展览？", [records[0], exhibition]);
+  assert.match(answer, /展览《开源之后》/);
+  assert.match(answer, /测试数据关系/);
+});

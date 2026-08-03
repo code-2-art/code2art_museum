@@ -1,6 +1,9 @@
 ---
 import SiteLayout from "@/layouts/SiteLayout.astro";
-import { exhibits } from "@/data/museum";
+import { demoAccounts, demoExhibitions, demoSubmissions, exhibits } from "@/data/museum";
+
+const workById = new Map(demoSubmissions.map((work) => [work.id, work]));
+const accountById = new Map(demoAccounts.map((account) => [account.id, account]));
 ---
 
 <SiteLayout title="展览 | code2art museum">
@@ -11,6 +14,35 @@ import { exhibits } from "@/data/museum";
         <h1>展览</h1>
       </div>
       <p>当前展览以“最小可见博物馆”为起点，把历史、项目、作品和 AI 协作过程放在同一条导览路线里。</p>
+    </section>
+    <section class="content-band exhibition-program" aria-labelledby="demo-exhibitions-title">
+      <div class="section-title">
+        <p class="eyebrow">Development programme</p>
+        <h2 id="demo-exhibitions-title">五个测试展览</h2>
+        <p>这组策展样本验证作品分组、作者关联和 Agent 的展览路线；内容不作为正式策展结论。</p>
+      </div>
+      <div class="exhibition-list">
+        {demoExhibitions.map((exhibition, index) => (
+          <article class="exhibition-card" id={exhibition.id}>
+            <header>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <p class="row-meta">{exhibition.status} / {exhibition.startDate}</p>
+                <h2>{exhibition.title}</h2>
+                <p>{exhibition.subtitle}</p>
+              </div>
+            </header>
+            <p>{exhibition.description}</p>
+            <ul>
+              {exhibition.submissionIds.map((id) => {
+                const work = workById.get(id);
+                const owner = work ? accountById.get(work.accountId) : undefined;
+                return work && <li><a href={`../works/index.html#${work.id}`}>{work.title}</a><span>{owner?.name}</span></li>;
+              })}
+            </ul>
+          </article>
+        ))}
+      </div>
     </section>
     <section class="index-list">
       {exhibits.map((exhibit) => (

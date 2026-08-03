@@ -1,6 +1,6 @@
 export type AgentEvidence = {
   id: string;
-  kind: "exhibit" | "profile" | "history";
+  kind: "exhibit" | "profile" | "history" | "submission" | "exhibition" | "archive";
   type: string;
   title: string;
   description: string;
@@ -16,7 +16,14 @@ export type ParseResult =
   | { ok: true; value: AgentRequest }
   | { ok: false; error: string };
 
-const evidenceKinds = new Set<AgentEvidence["kind"]>(["exhibit", "profile", "history"]);
+const evidenceKinds = new Set<AgentEvidence["kind"]>([
+  "exhibit",
+  "profile",
+  "history",
+  "submission",
+  "exhibition",
+  "archive"
+]);
 
 function boundedString(value: unknown, min: number, max: number) {
   if (typeof value !== "string") return null;

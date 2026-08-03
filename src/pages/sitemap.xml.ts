@@ -13,7 +13,8 @@ const staticPaths = [
   "privacy/",
   "profiles/",
   "progress/",
-  "research/"
+  "research/",
+  "works/"
 ];
 
 export function GET() {

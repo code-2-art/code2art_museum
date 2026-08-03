@@ -7,12 +7,21 @@ import {
   type HistoryNode,
   type Profile
 } from "./schemas";
+import {
+  demoAccounts,
+  demoArchiveRecords,
+  demoExhibitions,
+  demoSubmissions,
+  getDemoSubmissionOwner
+} from "./demo";
+
+export { demoAccounts, demoArchiveRecords, demoExhibitions, demoSubmissions } from "./demo";
 
 export type { Exhibit, HistoryNode, Profile } from "./schemas";
 
 export type MuseumRecord = {
   id: string;
-  kind: "exhibit" | "profile" | "history";
+  kind: "exhibit" | "profile" | "history" | "submission" | "exhibition" | "archive";
   type: string;
   title: string;
   description: string;
@@ -104,6 +113,58 @@ export const museumRecords: MuseumRecord[] = [
     meta: `${node.year} / ${node.status}`,
     keywords: [node.source, node.status],
     href: `/archive/#${node.id}`
+  })),
+  ...demoAccounts.map((account) => ({
+    id: account.slug,
+    kind: "profile" as const,
+    type: "demo-account",
+    title: account.name,
+    description: account.bio,
+    meta: `${account.identity} / 开发样本`,
+    keywords: [...account.tools, account.email],
+    href: `/members/#${account.slug}`
+  })),
+  ...demoSubmissions.map((submission) => {
+    const owner = getDemoSubmissionOwner(submission);
+    return {
+      id: submission.id,
+      kind: "submission" as const,
+      type: submission.type,
+      title: submission.title,
+      description: submission.summary,
+      meta: `${submission.year} / ${owner?.name ?? "开发样本"} / ${submission.status}`,
+      keywords: [...submission.tools, submission.process, owner?.name ?? "", owner?.identity ?? "", ...submission.exhibitionIds],
+      href: `/works/#${submission.id}`
+    };
+  }),
+  ...demoExhibitions.map((exhibition) => {
+    const works = demoSubmissions.filter((submission) => exhibition.submissionIds.includes(submission.id));
+    const owners = works.map(getDemoSubmissionOwner).filter((account) => account !== undefined);
+    return {
+      id: exhibition.id,
+      kind: "exhibition" as const,
+      type: "exhibition",
+      title: exhibition.title,
+      description: exhibition.description,
+      meta: `${exhibition.startDate} / ${exhibition.status} / ${exhibition.submissionIds.length} 件作品`,
+      keywords: [
+        exhibition.subtitle,
+        exhibition.status,
+        ...works.flatMap((work) => [work.title, ...work.tools]),
+        ...owners.map((account) => account.name)
+      ],
+      href: `/exhibitions/#${exhibition.id}`
+    };
+  }),
+  ...demoArchiveRecords.map((record) => ({
+    id: record.id,
+    kind: "archive" as const,
+    type: record.category,
+    title: record.title,
+    description: record.description,
+    meta: `${record.year} / ${record.status}`,
+    keywords: [record.id, ...record.keywords, ...record.relatedIds],
+    href: `/archive/#${record.id}`
   }))
 ];
 

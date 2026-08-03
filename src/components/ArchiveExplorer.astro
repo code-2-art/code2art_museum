@@ -4,6 +4,8 @@ import { museumRecords } from "@/data/museum";
 const toArchiveHref = (href: string) => {
   if (href.startsWith("/exhibits/")) return `../${href.slice(1)}index.html`;
   if (href.startsWith("/members/")) return `../members/index.html${href.split("#")[1] ? `#${href.split("#")[1]}` : ""}`;
+  if (href.startsWith("/works/")) return `../works/index.html${href.split("#")[1] ? `#${href.split("#")[1]}` : ""}`;
+  if (href.startsWith("/exhibitions/")) return `../exhibitions/index.html${href.split("#")[1] ? `#${href.split("#")[1]}` : ""}`;
   return href.includes("#") ? `#${href.split("#")[1]}` : "#";
 };
 const records = museumRecords.map((record) => ({ ...record, resolvedHref: toArchiveHref(record.href) }));
@@ -14,7 +16,9 @@ const filters = [
   ["project", "项目"],
   ["prompt", "Prompt / Skill"],
   ["profile", "人物"],
-  ["history", "历史"]
+  ["history", "历史"],
+  ["exhibition", "展览"],
+  ["archive", "开发 Archive"]
 ];
 ---
 
@@ -37,7 +41,7 @@ const filters = [
   <p class="archive-count" aria-live="polite" data-archive-count>共 {records.length} 条公开记录</p>
   <div class="index-list" data-archive-results>
     {records.map((record) => (
-      <a class="index-row archive-result" href={record.resolvedHref} data-kind={record.kind} data-type={record.type}>
+      <a class="index-row archive-result" id={record.id} href={record.resolvedHref} data-kind={record.kind} data-type={record.type}>
         <p class="row-meta">{record.kind} / {record.type} / {record.meta}</p>
         <h3>{record.title}</h3>
         <p>{record.description}</p>
@@ -77,6 +81,7 @@ const filters = [
       results.replaceChildren(...visible.map((record) => {
         const link = document.createElement("a");
         link.className = "index-row archive-result";
+        link.id = record.id;
         link.href = record.resolvedHref;
         const meta = document.createElement("p");
         meta.className = "row-meta";

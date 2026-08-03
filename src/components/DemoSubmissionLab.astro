@@ -1,0 +1,165 @@
+---
+import { demoAccounts, demoSubmissions } from "@/data/museum";
+
+const payload = JSON.stringify({ accounts: demoAccounts, submissions: demoSubmissions }).replace(/</g, "\\u003c");
+---
+
+<section class="demo-submission-lab" aria-labelledby="demo-lab-title" data-demo-submission-lab>
+  <header class="demo-lab-heading">
+    <div>
+      <p class="eyebrow">Local core-flow lab</p>
+      <h2 id="demo-lab-title">本地投稿与展示测试台</h2>
+    </div>
+    <p>切换十个固定测试身份，上传预览并检查作品归属。新增记录只保存在当前浏览器，不会连接或修改云端数据。</p>
+  </header>
+
+  <div class="demo-lab-grid">
+    <form class="demo-lab-form" data-demo-lab-form>
+      <label>
+        <span>测试身份</span>
+        <select name="account_id" data-demo-account-select required>
+          {demoAccounts.map((account) => <option value={account.id}>{account.name} · {account.identity}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>作品标题</span>
+        <input name="title" minlength="2" maxlength="160" required placeholder="输入一件测试作品" />
+      </label>
+      <label>
+        <span>作品摘要</span>
+        <textarea name="summary" minlength="20" maxlength="600" rows="4" required placeholder="至少 20 个字，用于验证展示与 Agent 数据边界"></textarea>
+      </label>
+      <label>
+        <span>图片预览</span>
+        <input name="preview" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
+        <small>图片小于 750 KB 时会随测试记录保存在本浏览器；更大的图片只显示文件名。</small>
+      </label>
+      <div class="form-actions">
+        <button class="button-quiet" type="button" data-demo-reset>清空本机新增</button>
+        <button class="button-primary" type="submit">添加测试投稿</button>
+      </div>
+      <p class="form-status" aria-live="polite" data-demo-status></p>
+    </form>
+
+    <div class="demo-lab-results">
+      <div class="demo-lab-summary">
+        <p class="eyebrow">Account collection</p>
+        <h3 data-demo-owner></h3>
+        <p data-demo-count></p>
+      </div>
+      <div class="demo-work-list" data-demo-work-list></div>
+    </div>
+  </div>
+  <script type="application/json" data-demo-seed set:html={payload}></script>
+</section>
+
+<script>
+  type DemoLocalRecord = {
+    id: string;
+    accountId: string;
+    title: string;
+    summary: string;
+    fileName: string;
+    previewDataUrl?: string;
+    createdAt: string;
+  };
+
+  const lab = document.querySelector<HTMLElement>("[data-demo-submission-lab]");
+  if (lab) {
+    const storageKey = "code2art-museum-demo-submissions-v1";
+    const form = lab.querySelector<HTMLFormElement>("[data-demo-lab-form]");
+    const accountSelect = lab.querySelector<HTMLSelectElement>("[data-demo-account-select]");
+    const list = lab.querySelector<HTMLElement>("[data-demo-work-list]");
+    const owner = lab.querySelector<HTMLElement>("[data-demo-owner]");
+    const count = lab.querySelector<HTMLElement>("[data-demo-count]");
+    const status = lab.querySelector<HTMLElement>("[data-demo-status]");
+    const reset = lab.querySelector<HTMLButtonElement>("[data-demo-reset]");
+    const seedNode = lab.querySelector<HTMLScriptElement>("[data-demo-seed]");
+    const seed = seedNode?.textContent ? JSON.parse(seedNode.textContent) : { accounts: [], submissions: [] };
+
+    const readLocal = (): DemoLocalRecord[] => {
+      try {
+        const value = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        return Array.isArray(value) ? value : [];
+      } catch {
+        localStorage.removeItem(storageKey);
+        return [];
+      }
+    };
+
+    const saveLocal = (records: DemoLocalRecord[]) => localStorage.setItem(storageKey, JSON.stringify(records));
+    const makeCard = (work: { title: string; summary: string; status?: string; fileName?: string; previewDataUrl?: string }, local: boolean) => {
+      const article = document.createElement("article");
+      article.className = "demo-work-item";
+      if (work.previewDataUrl) {
+        const image = document.createElement("img");
+        image.src = work.previewDataUrl;
+        image.alt = `${work.title} 上传预览`;
+        article.append(image);
+      }
+      const meta = document.createElement("span");
+      meta.textContent = local ? `本机新增${work.fileName ? ` / ${work.fileName}` : ""}` : `预置样本 / ${work.status || "published"}`;
+      const title = document.createElement("strong");
+      title.textContent = work.title;
+      const summary = document.createElement("p");
+      summary.textContent = work.summary;
+      article.append(meta, title, summary);
+      return article;
+    };
+
+    const render = () => {
+      if (!accountSelect || !list) return;
+      const accountId = accountSelect.value;
+      const account = seed.accounts.find((item: { id: string }) => item.id === accountId);
+      const seeded = seed.submissions.filter((item: { accountId: string }) => item.accountId === accountId);
+      const local = readLocal().filter((item) => item.accountId === accountId);
+      if (owner) owner.textContent = account ? `${account.name} · ${account.identity}` : "测试身份";
+      if (count) count.textContent = `预置 ${seeded.length} 件，本机新增 ${local.length} 件`;
+      list.replaceChildren(...seeded.map((item: Parameters<typeof makeCard>[0]) => makeCard(item, false)), ...local.map((item) => makeCard(item, true)));
+    };
+
+    const toDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => resolve(typeof reader.result === "string" ? reader.result : ""));
+      reader.addEventListener("error", () => reject(reader.error));
+      reader.readAsDataURL(file);
+    });
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity() || !accountSelect) return;
+      const data = new FormData(form);
+      const file = data.get("preview") instanceof File ? data.get("preview") as File : undefined;
+      if (file?.size && !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+        if (status) { status.textContent = "请选择 JPG、PNG、WebP 或 GIF 图片。"; status.dataset.kind = "error"; }
+        return;
+      }
+      const record: DemoLocalRecord = {
+        id: crypto.randomUUID(),
+        accountId: accountSelect.value,
+        title: String(data.get("title") || "").trim(),
+        summary: String(data.get("summary") || "").trim(),
+        fileName: file?.name || "",
+        createdAt: new Date().toISOString()
+      };
+      if (file?.size && file.size <= 750 * 1024) record.previewDataUrl = await toDataUrl(file);
+      try {
+        saveLocal([record, ...readLocal()].slice(0, 30));
+        form.reset();
+        accountSelect.value = record.accountId;
+        if (status) { status.textContent = "测试投稿已保存并显示；云端数据未被修改。"; status.dataset.kind = "success"; }
+        render();
+      } catch {
+        if (status) { status.textContent = "浏览器存储空间不足，请换用更小的图片或清空本机新增记录。"; status.dataset.kind = "error"; }
+      }
+    });
+
+    accountSelect?.addEventListener("change", render);
+    reset?.addEventListener("click", () => {
+      localStorage.removeItem(storageKey);
+      if (status) { status.textContent = "本机新增测试投稿已清空。"; status.dataset.kind = "success"; }
+      render();
+    });
+    render();
+  }
+</script>

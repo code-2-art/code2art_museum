@@ -7,6 +7,8 @@ const recordsJson = JSON.stringify(museumRecords).replace(/</g, "\\u003c");
 const toHomeHref = (record: (typeof museumRecords)[number]) => {
   if (record.kind === "exhibit") return `exhibits/${record.id}/index.html`;
   if (record.kind === "profile") return `members/index.html#${record.id}`;
+  if (record.kind === "submission") return `works/index.html#${record.id}`;
+  if (record.kind === "exhibition") return `exhibitions/index.html#${record.id}`;
   return `archive/index.html#${record.id}`;
 };
 ---
@@ -73,6 +75,8 @@ const toHomeHref = (record: (typeof museumRecords)[number]) => {
     const toHref = (record: MuseumRecord) => {
       if (record.kind === "exhibit") return `exhibits/${record.id}/index.html`;
       if (record.kind === "profile") return `members/index.html#${record.id}`;
+      if (record.kind === "submission") return `works/index.html#${record.id}`;
+      if (record.kind === "exhibition") return `exhibitions/index.html#${record.id}`;
       return `archive/index.html#${record.id}`;
     };
     const render = async (query: string) => {

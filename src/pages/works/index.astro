@@ -1,0 +1,45 @@
+---
+import SiteLayout from "@/layouts/SiteLayout.astro";
+import { demoAccounts, demoSubmissions } from "@/data/museum";
+
+const ownerById = new Map(demoAccounts.map((account) => [account.id, account]));
+const published = demoSubmissions.filter((work) => ["approved", "published"].includes(work.status));
+---
+
+<SiteLayout title="作品 | code2art museum">
+  <main class="page-shell">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">Works / Development collection</p>
+        <h1>作品</h1>
+      </div>
+      <p>当前陈列用于开发和测试投稿、作者归属、策展分组与 Agent 检索。所有标有“开发样本”的内容都不代表正式馆藏。</p>
+    </section>
+    <div class="service-notice demo-data-notice">
+      <strong>开发样本</strong>
+      <span>{demoAccounts.length} 个测试身份共提交 {demoSubmissions.length} 件作品，其中 {published.length} 件处于可展示状态。</span>
+    </div>
+    <section class="work-catalog" aria-label="开发样本作品">
+      {demoSubmissions.map((work, index) => {
+        const owner = ownerById.get(work.accountId);
+        return (
+          <article class="work-card" id={work.id}>
+            <div class={`work-card-media tone-${(index % 5) + 1}`} aria-hidden="true">
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <i></i>
+            </div>
+            <div class="work-card-copy">
+              <p class="row-meta">{work.type} / {work.year} / {work.status}</p>
+              <h2>{work.title}</h2>
+              <p>{work.summary}</p>
+              <dl>
+                <div><dt>作者</dt><dd><a href={`../members/index.html#${owner?.slug}`}>{owner?.name}</a></dd></div>
+                <div><dt>工具</dt><dd>{work.tools.join(" · ")}</dd></div>
+              </dl>
+            </div>
+          </article>
+        );
+      })}
+    </section>
+  </main>
+</SiteLayout>

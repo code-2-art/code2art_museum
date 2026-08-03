@@ -48,6 +48,16 @@ test("rejects oversized questions and unrecognized evidence kinds", () => {
   );
 });
 
+test("accepts new development collection evidence kinds", () => {
+  for (const kind of ["submission", "exhibition", "archive"]) {
+    const parsed = parseAgentRequest({
+      ...validRequest,
+      evidence: [{ ...validRequest.evidence[0], kind }]
+    });
+    assert.equal(parsed.ok, true, `${kind} should be accepted`);
+  }
+});
+
 test("rejects empty or excessive evidence lists", () => {
   assert.deepEqual(parseAgentRequest({ ...validRequest, evidence: [] }), { ok: false, error: "invalid_evidence" });
   assert.deepEqual(

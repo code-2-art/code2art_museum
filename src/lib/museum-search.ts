@@ -19,7 +19,7 @@ export function searchMuseum(records: MuseumRecord[], rawQuery: string, limit = 
   const tokens = Array.from(new Set([query, ...query.split(/[\s，。！？、/]+/).filter(Boolean)]));
   const boostedTerms = intentTerms.filter((intent) => intent.test.test(query)).flatMap((intent) => intent.terms);
 
-  return records
+  const ranked = records
     .map((record) => {
       const title = normalize(record.title);
       const summary = normalize(`${record.description} ${record.meta}`);
@@ -41,8 +41,23 @@ export function searchMuseum(records: MuseumRecord[], rawQuery: string, limit = 
       return { ...record, score };
     })
     .filter((record) => record.score > 0)
-    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, "zh-CN"))
-    .slice(0, limit);
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, "zh-CN"));
+
+  const diverse: SearchResult[] = [];
+  const kindCounts = new Map<MuseumRecord["kind"], number>();
+  for (const record of ranked) {
+    if ((kindCounts.get(record.kind) || 0) >= 2) continue;
+    diverse.push(record);
+    kindCounts.set(record.kind, (kindCounts.get(record.kind) || 0) + 1);
+    if (diverse.length === limit) return diverse;
+  }
+
+  for (const record of ranked) {
+    if (diverse.includes(record)) continue;
+    diverse.push(record);
+    if (diverse.length === limit) break;
+  }
+  return diverse;
 }
 
 export function buildGuideAnswer(query: string, results: SearchResult[]) {
@@ -51,6 +66,14 @@ export function buildGuideAnswer(query: string, results: SearchResult[]) {
   }
 
   const names = results.slice(0, 3).map((record) => `《${record.title}》`);
+  if (/展览|策展|展出/.test(query)) {
+    const exhibition = results.find((record) => record.kind === "exhibition");
+    const related = results.filter((record) => record.kind === "submission").slice(0, 2);
+    if (exhibition) {
+      const works = related.length ? `，相关作品包括 ${related.map((record) => `《${record.title}》`).join("、")}` : "";
+      return `根据当前公开开发样本，可先进入展览《${exhibition.title}》核对策展关系${works}。这是测试数据关系，不代表正式馆藏或最终策展结论。`;
+    }
+  }
   if (/参与|投稿|贡献|加入/.test(query)) {
     return `建议先浏览 ${names.join("、")} 了解馆藏边界，再进入“参与”页提交材料。投稿会保留来源、授权与审核状态，不会直接自动公开。`;
   }

@@ -3,6 +3,16 @@
 主站仍然使用 Astro 静态构建。Supabase 提供身份认证、私有投稿记录、审核状态、
 私有上传存储，以及供 Museum Agent 使用的服务端模型网关。
 
+## 本地开发数据
+
+安装 Supabase CLI 并启动 Docker 兼容运行时后，执行 `supabase db reset` 会先应用
+全部迁移，再执行 `seed.sql`。Seed 创建 10 个固定的 Auth 所有权占位账户和每人
+1–3 条投稿，共 20 条；它们没有可用密码，不应用于真实登录。网页中的“本地投稿与
+展示测试台”使用相同身份，但只写浏览器 localStorage，因此不依赖本地或线上 Supabase。
+
+`seed.sql` 只允许在本地开发栈运行，绝不能对托管项目执行。五个测试展览和 200 条
+Archive 记录由 `src/data/demo.ts` 确定性生成，供静态页面、搜索和 Museum Agent 共用。
+
 ## 应用数据库结构
 
 1. 创建或连接一个 Supabase 项目。
