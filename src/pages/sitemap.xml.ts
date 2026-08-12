@@ -14,6 +14,7 @@ const staticPaths = [
   "profiles/",
   "progress/",
   "research/",
+  "space/gauss/",
   "works/"
 ];
 
