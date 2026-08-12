@@ -51,7 +51,19 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
         </div>
 
         <p class="zone-label" data-zone-label aria-live="polite">入口庭院 / Archive Atrium</p>
-        <p class="quality-label" data-quality-label aria-live="polite">高质量 · 60 FPS</p>
+        <div class="version-panel" aria-label="高斯展厅版本">
+          <p class="quality-label" data-quality-label aria-live="polite">高性能 · 60 FPS</p>
+          <div class="version-switch" role="group" aria-label="切换渲染版本">
+            <button type="button" data-gallery-mode="performance" aria-pressed="true">
+              <span>高性能版</span>
+              <small>实时漫游</small>
+            </button>
+            <button type="button" data-gallery-mode="concept" aria-pressed="false">
+              <span>概念高质量版</span>
+              <small>百万级扫描</small>
+            </button>
+          </div>
+        </div>
 
         <div class="mobile-controls">
           <p class="mobile-hint">拖动画面观察 · 左侧摇杆移动</p>
@@ -99,7 +111,7 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
               <p>拖动画面观察，左侧摇杆移动。右侧路线按钮切换自动导览，鼠标图标让视角回正。</p>
             </section>
           </div>
-          <p class="technology-note">场景由确定性参数生成，并以 Spark PackedSplats 在 Three.js 中实时排序和绘制；建筑本身就是高斯数据。</p>
+          <p class="technology-note">高性能版用于流畅漫游；概念高质量版以百万级扫描回波重建空间，并保留缺损、噪点与分层采样质感。两版均由 Spark PackedSplats 在 Three.js 中实时排序和绘制。</p>
         </form>
       </dialog>
     </main>
@@ -290,17 +302,62 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
 
   .zone-label::first-letter { color: #f05a3c; }
 
-  .quality-label {
+  .version-panel {
     position: absolute;
     right: max(30px, env(safe-area-inset-right));
     bottom: max(31px, env(safe-area-inset-bottom));
+    display: grid;
+    justify-items: end;
+    gap: 9px;
+    pointer-events: auto;
+  }
+
+  .quality-label {
     margin: 0;
     color: rgba(240, 234, 223, 0.8);
-    font-size: 13px;
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
     text-shadow: 0 2px 15px #000;
   }
+
+  .version-switch {
+    display: flex;
+    padding: 3px;
+    background: rgba(8, 8, 7, 0.66);
+    border: 1px solid rgba(240, 234, 223, 0.26);
+    border-radius: 3px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(11px);
+  }
+
+  .version-switch button {
+    display: grid;
+    min-width: 112px;
+    min-height: 48px;
+    align-content: center;
+    gap: 2px;
+    padding: 6px 13px;
+    color: rgba(240, 234, 223, 0.62);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 1px;
+    cursor: pointer;
+    transition: color 180ms ease, background 180ms ease;
+  }
+
+  .version-switch button + button { border-left: 1px solid rgba(240, 234, 223, 0.14); }
+  .version-switch button span { font-size: 12px; font-weight: 580; letter-spacing: 0.02em; }
+  .version-switch button small { font-size: 9px; letter-spacing: 0.08em; opacity: 0.62; }
+  .version-switch button:hover,
+  .version-switch button:focus-visible { color: #f0eadf; outline: none; }
+  .version-switch button.is-active {
+    color: #f0eadf;
+    background: rgba(240, 90, 60, 0.17);
+    box-shadow: inset 0 0 0 1px rgba(240, 90, 60, 0.58);
+  }
+  .version-switch button:disabled { cursor: wait; opacity: 0.48; }
 
   .loading-screen {
     position: absolute;
@@ -422,12 +479,23 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
       font-size: 14px;
       text-overflow: ellipsis;
     }
-    .quality-label {
+    .version-panel {
       right: max(22px, env(safe-area-inset-right));
       bottom: max(18px, env(safe-area-inset-bottom));
-      color: rgba(142, 207, 136, 0.84);
-      font-size: 10px;
+      gap: 5px;
     }
+    .quality-label {
+      color: rgba(142, 207, 136, 0.84);
+      font-size: 9px;
+    }
+    .version-switch button {
+      min-width: 76px;
+      min-height: 42px;
+      padding: 5px 8px;
+    }
+    .version-switch button span { font-size: 10px; }
+    .version-switch button small { font-size: 7px; }
+    .version-switch button + button { min-width: 94px; }
     .mobile-controls {
       position: absolute;
       inset: auto 0 0;
@@ -438,7 +506,7 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
     .mobile-hint {
       position: absolute;
       right: 0;
-      bottom: calc(max(18px, env(safe-area-inset-bottom)) + 5px);
+      bottom: calc(max(18px, env(safe-area-inset-bottom)) + 132px);
       left: 0;
       margin: 0 auto;
       color: rgba(240, 234, 223, 0.66);
@@ -478,7 +546,7 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
     .mobile-actions {
       position: absolute;
       right: max(22px, env(safe-area-inset-right));
-      bottom: calc(max(18px, env(safe-area-inset-bottom)) + 46px);
+      bottom: calc(max(18px, env(safe-area-inset-bottom)) + 91px);
       display: flex;
       gap: 12px;
       pointer-events: auto;
@@ -507,8 +575,10 @@ const description = "由程序化 3D Gaussian Splats 构成、支持键鼠与触
     .joystick { width: 88px; height: 88px; bottom: 22px; }
     .joystick-knob { width: 38px; height: 38px; margin: -19px 0 0 -19px; }
     .joystick-arrow { display: none; }
-    .mobile-actions { bottom: 34px; }
+    .mobile-actions { bottom: 76px; }
     .mobile-hint { display: none; }
+    .version-panel { bottom: 10px; }
+    .quality-label { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {

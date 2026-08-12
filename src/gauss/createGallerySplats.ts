@@ -1,6 +1,7 @@
 import { PackedSplats, SplatMesh } from "@sparkjsdev/spark";
 import * as THREE from "three";
 import { GALLERY_COLORS } from "./galleryData";
+import { createConceptGallerySplats } from "./createConceptGallerySplats";
 
 type SurfaceOptions = {
   origin: THREE.Vector3;
@@ -226,9 +227,21 @@ export type GallerySplatResult = {
   mesh: SplatMesh;
   count: number;
   quality: "desktop" | "mobile";
+  mode: GalleryRenderMode;
 };
 
-export function createGallerySplats(mobile: boolean): GallerySplatResult {
+export type GalleryRenderMode = "performance" | "concept";
+
+export function createGallerySplats(
+  mobile: boolean,
+  mode: GalleryRenderMode = "performance",
+  onProgress?: (progress: number) => void
+): GallerySplatResult {
+  if (mode === "concept") {
+    const gallery = createConceptGallerySplats(mobile, onProgress);
+    return { ...gallery, quality: mobile ? "mobile" : "desktop", mode };
+  }
+
   const random = mulberry32(20162026);
   const step = mobile ? 0.48 : 0.34;
   const packedSplats = new PackedSplats({
@@ -243,6 +256,7 @@ export function createGallerySplats(mobile: boolean): GallerySplatResult {
   return {
     mesh,
     count: packedSplats.numSplats,
-    quality: mobile ? "mobile" : "desktop"
+    quality: mobile ? "mobile" : "desktop",
+    mode
   };
 }

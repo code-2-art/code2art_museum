@@ -29,8 +29,11 @@ Mobile: the same wordmark and zone label, plus `拖动画面观察 · 左侧摇�
 - Touch drag-to-look and virtual joystick movement
 - Auto-tour toggle through the four archive zones
 - Help dialog, quality label, loading state, WebGL2 fallback
+- Persistent bottom-right version switch between `高性能版 / 实时漫游` and `概念高质量版 / 百万级扫描`
 - Collision against the gallery bounds and central archive sculpture
 
 ## Scene data
 
 The exhibition hall is generated locally from deterministic parameters. Every visible architectural plane, archive ribbon, constellation node, and route line is emitted as an anisotropic Gaussian via Spark `PackedSplats`; no third-party scan is required.
+
+The concept-quality mode reconstructs the same spatial language as one million deterministic scan returns on desktop (520,000 on touch/low-memory devices). It intentionally preserves scan gaps, depth noise, bright returns, and sparse floating samples. Switching modes replaces and disposes the previous GPU dataset; the selected mode persists locally.
